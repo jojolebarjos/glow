@@ -7,17 +7,41 @@
 #include "Buffer.hpp"
 #include "VertexArray.hpp"
 
+static void APIENTRY debug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const * message, void const * userParam) {
+    std::cout << glGetFriendlyName(source) << ':' << glGetFriendlyName(type) << ':' << glGetFriendlyName(severity) << ' ' << message << std::endl;
+    // TODO if we use that, is shader log still useful?
+}
+
 int main(int argc, char** argv) {
+    
+    // Initialize GLFW
     if (!glfwInit())
         return -1;
+    
+    // Create window
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow * window = glfwCreateWindow(640, 480, "Glow", NULL, NULL);
     glfwMakeContextCurrent(window);
+    
+    // Load GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         glfwDestroyWindow(window);
         glfwTerminate();
         return -2;
     }
+    
+    // Enable OpenGL debugging
+    glEnable(GL_DEBUG_OUTPUT);
+    // TODO glDebugMessageControl?
+    glDebugMessageCallback(debug, nullptr);
+    
+    // Get screen size
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    
+    // Game scope
     {
         Image image;
         image.load("Test.bmp");
@@ -50,6 +74,15 @@ int main(int argc, char** argv) {
         array.addAttribute(1, 3, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
         array.addAttribute(2, 2, GL_FLOAT, 0, mesh.getCount() * 4 * (3 + 3));
         
+        glm::mat4 projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 view = glm::lookAt(glm::vec3(-2.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 model = glm::mat4();
+        shader.setUniform("projection", projection);
+        shader.setUniform("view", view);
+        shader.setUniform("model", model);
+        
+        glEnable(GL_DEPTH_TEST);
+        
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             
@@ -61,8 +94,9 @@ int main(int argc, char** argv) {
             glfwSwapBuffers(window);
         }
     }
+    
+    // Clean up
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
-
