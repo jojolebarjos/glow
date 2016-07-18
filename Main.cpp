@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
         shader.setUniform("model", model);
         
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
         
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();

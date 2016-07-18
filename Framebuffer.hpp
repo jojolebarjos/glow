@@ -3,6 +3,7 @@
 #define FRAMEBUFFER_HPP
 
 #include "Texture2D.hpp"
+#include "DepthStencilTexture2D.hpp"
 
 class Framebuffer {
 public:
@@ -13,11 +14,12 @@ public:
     Framebuffer(Framebuffer const &) = delete;
     Framebuffer & operator=(Framebuffer const &) = delete;
     
-    void attach(Texture2D & texture);
-    // TODO stencil/depth...
-    bool validate();
-    
     void bind();
+    
+    void attach(Texture2D & texture, int attachment);
+    void attach(DepthStencilTexture2D & texture);
+    
+    bool validate();
     
     // TODO get textures, get size...
     

@@ -14,6 +14,8 @@ public:
     Texture2D(Texture2D const &) = delete;
     Texture2D & operator=(Texture2D const &) = delete;
     
+    GLuint getHandle();
+    
     void bind();
     void bind(int slot);
     

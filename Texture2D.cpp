@@ -11,6 +11,10 @@ Texture2D::~Texture2D() {
     glDeleteTextures(1, &handle);
 }
 
+GLuint Texture2D::getHandle() {
+    return handle;
+}
+
 void Texture2D::bind() {
     glBindTexture(GL_TEXTURE_2D, handle);
 }
