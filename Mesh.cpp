@@ -47,7 +47,7 @@ bool Mesh::loadObj(std::string const & path) {
                             indice.z = strtol(s2 + 1, NULL, 10) - 1;
                             *s2 = '\0';
                         }
-                        indice.y = strtol(part, NULL, 10) - 1;
+                        indice.y = strtol(s1 + 1, NULL, 10) - 1;
                         *s1 = '\0';
                     }
                     indice.x = strtol(part, NULL, 10) - 1;

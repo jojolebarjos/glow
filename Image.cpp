@@ -75,9 +75,9 @@ bool Image::loadBmp(std::string const & path) {
         for (uint32_t y = 0; y < height; y++) {
             uint32_t i = x * 3 + y * row;
             uint32_t color = 0;
-            color |= bytes[i] & 0xff;
+            color |= bytes[i + 2] & 0xff;
             color |= (bytes[i + 1] & 0xff) << 8;
-            color |= (bytes[i + 2] & 0xff) << 16;
+            color |= (bytes[i] & 0xff) << 16;
             color |= 0xff << 24;
             colors[x + (height - y - 1) * width] = color;
 	}

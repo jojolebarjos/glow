@@ -7,10 +7,15 @@
 #include "Buffer.hpp"
 #include "VertexArray.hpp"
 
+// Debug context seems to cause issues with gDebugger :/
+#define DEBUG_CONTEXT
+
+#ifdef DEBUG_CONTEXT
 static void APIENTRY debug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const * message, void const * userParam) {
     std::cout << glGetFriendlyName(source) << ':' << glGetFriendlyName(type) << ':' << glGetFriendlyName(severity) << ' ' << message << std::endl;
     // TODO if we use that, is shader log still useful?
 }
+#endif
 
 int main(int argc, char** argv) {
     
@@ -19,7 +24,9 @@ int main(int argc, char** argv) {
         return -1;
     
     // Create window
+#ifdef DEBUG_CONTEXT
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow * window = glfwCreateWindow(640, 480, "Glow", NULL, NULL);
     glfwMakeContextCurrent(window);
@@ -33,9 +40,11 @@ int main(int argc, char** argv) {
     }
     
     // Enable OpenGL debugging
+#ifdef DEBUG_CONTEXT
     glEnable(GL_DEBUG_OUTPUT);
     // TODO glDebugMessageControl?
     glDebugMessageCallback(debug, nullptr);
+#endif
     
     // Get screen size
     int width, height;
@@ -59,7 +68,7 @@ int main(int argc, char** argv) {
         shader.setUniform("tex", 0);
         
         Mesh mesh;
-        mesh.load("Square.obj");
+        mesh.load("Cube.obj");
         
         Buffer buffer;
         buffer.bind(GL_ARRAY_BUFFER);
@@ -85,9 +94,13 @@ int main(int argc, char** argv) {
         
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
+            float time = glfwGetTime();
             
             glClearColor(0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            
+            view = glm::lookAt(glm::vec3(glm::cos(time) * 2.0f, glm::sin(time) * 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            shader.setUniform("view", view);
             
             glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
             
