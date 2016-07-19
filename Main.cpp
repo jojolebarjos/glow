@@ -171,7 +171,9 @@ int main(int argc, char** argv) {
                 glDepthFunc(GL_EQUAL);
                 
                 // Use additive blend to combine lightmaps
-                // TODO enable additive blend
+                glEnable(GL_BLEND);
+                glBlendEquation(GL_ADD);
+                glBlendFunc(GL_ONE, GL_ONE);
                 
                 // Select shading shader
                 shading_shader.use();
@@ -197,7 +199,9 @@ int main(int argc, char** argv) {
             glDepthFunc(GL_EQUAL);
             
             // Use multiplicative blend to combine light and texture
-            // TODO
+            glEnable(GL_BLEND);
+            glBlendEquation(GL_ADD);
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
             
             // Select texture shader
             texture_shader.use();
