@@ -18,10 +18,15 @@
                    displayName="Resource Files"
                    projectFiles="true">
       <itemPath>Cube.obj</itemPath>
+      <itemPath>Depth.fs</itemPath>
+      <itemPath>Depth.vs</itemPath>
+      <itemPath>Extrusion.fs</itemPath>
+      <itemPath>Extrusion.gs</itemPath>
+      <itemPath>Extrusion.vs</itemPath>
+      <itemPath>Shading.fs</itemPath>
+      <itemPath>Shading.vs</itemPath>
       <itemPath>Square.obj</itemPath>
       <itemPath>Test.bmp</itemPath>
-      <itemPath>Test.fs</itemPath>
-      <itemPath>Test.vs</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -73,9 +78,19 @@
       </item>
       <item path="Cube.obj" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Depth.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Depth.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="DepthStencilTexture2D.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="DepthStencilTexture2D.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Framebuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -95,13 +110,13 @@
       </item>
       <item path="Shader.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Shading.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Shading.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Test.bmp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Test.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Test.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Texture2D.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -140,9 +155,19 @@
       </item>
       <item path="Cube.obj" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Depth.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Depth.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="DepthStencilTexture2D.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="DepthStencilTexture2D.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Extrusion.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Framebuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -162,13 +187,13 @@
       </item>
       <item path="Shader.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Shading.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Shading.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Test.bmp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Test.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Test.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Texture2D.cpp" ex="false" tool="1" flavor2="0">
       </item>

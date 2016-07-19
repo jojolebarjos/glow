@@ -28,6 +28,9 @@ public:
     void setUniform(GLint location, GLint x);
     void setUniform(std::string const & name, GLint x);
     
+    void setUniform(GLint location, glm::vec3 const & v);
+    void setUniform(std::string const & name, glm::vec3 const & v);
+    
     // TODO others...
     
     void setUniform(GLint location, glm::mat4 const & m);
