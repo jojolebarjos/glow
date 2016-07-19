@@ -69,14 +69,12 @@ int main(int argc, char** argv) {
         depth_shader.addSourceFile(GL_FRAGMENT_SHADER, "Depth.fs");
         depth_shader.link();
         
-        /*
         // Load shadow volume extrusion shader
         Shader extrusion_shader;
         extrusion_shader.addSourceFile(GL_VERTEX_SHADER, "Extrusion.vs");
         extrusion_shader.addSourceFile(GL_GEOMETRY_SHADER, "Extrusion.gs");
         extrusion_shader.addSourceFile(GL_FRAGMENT_SHADER, "Extrusion.fs");
         extrusion_shader.link();
-        */
         
         // Load shading shader
         Shader shading_shader;
@@ -90,24 +88,43 @@ int main(int argc, char** argv) {
         texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
         texture_shader.link();
         
-        // Load simple mesh
-        Mesh mesh;
-        mesh.load("Cube.obj");
+        // Load cube mesh
+        Mesh cube_mesh;
+        cube_mesh.load("Cube.obj");
         
-        // Create simple buffer
-        Buffer buffer;
-        buffer.bind(GL_ARRAY_BUFFER);
-        buffer.setData(mesh.getCount() * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
-        buffer.setSubData(0, mesh.getCount() * 4 * 3, mesh.getPositions());
-        buffer.setSubData(mesh.getCount() * 4 * 3, mesh.getCount() * 4 * 3, mesh.getNormals());
-        buffer.setSubData(mesh.getCount() * 4 * (3 + 3), mesh.getCount() * 4 * 2, mesh.getCoordinates());
+        // Create cube buffer
+        Buffer cube_buffer;
+        cube_buffer.bind(GL_ARRAY_BUFFER);
+        cube_buffer.setData(cube_mesh.getCount() * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
+        cube_buffer.setSubData(0, cube_mesh.getCount() * 4 * 3, cube_mesh.getPositions());
+        cube_buffer.setSubData(cube_mesh.getCount() * 4 * 3, cube_mesh.getCount() * 4 * 3, cube_mesh.getNormals());
+        cube_buffer.setSubData(cube_mesh.getCount() * 4 * (3 + 3), cube_mesh.getCount() * 4 * 2, cube_mesh.getCoordinates());
         
-        // Create simple vertex array object
-        VertexArray array;
-        array.bind();
-        array.addAttribute(0, 3, GL_FLOAT, 0, 0);
-        array.addAttribute(1, 3, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
-        array.addAttribute(2, 2, GL_FLOAT, 0, mesh.getCount() * 4 * (3 + 3));
+        // Create cube vertex array object
+        VertexArray cube_array;
+        cube_array.bind();
+        cube_array.addAttribute(0, 3, GL_FLOAT, 0, 0);
+        cube_array.addAttribute(1, 3, GL_FLOAT, 0, cube_mesh.getCount() * 4 * 3);
+        cube_array.addAttribute(2, 2, GL_FLOAT, 0, cube_mesh.getCount() * 4 * (3 + 3));
+        
+        // Load square mesh for cube
+        Mesh square_mesh;
+        square_mesh.load("Square.obj");
+        
+        // Create square buffer
+        Buffer square_buffer;
+        square_buffer.bind(GL_ARRAY_BUFFER);
+        square_buffer.setData(square_mesh.getCount() * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
+        square_buffer.setSubData(0, square_mesh.getCount() * 4 * 3, square_mesh.getPositions());
+        square_buffer.setSubData(square_mesh.getCount() * 4 * 3, square_mesh.getCount() * 4 * 3, square_mesh.getNormals());
+        square_buffer.setSubData(square_mesh.getCount() * 4 * (3 + 3), square_mesh.getCount() * 4 * 2, square_mesh.getCoordinates());
+        
+        // Create square vertex array object
+        VertexArray square_array;
+        square_array.bind();
+        square_array.addAttribute(0, 3, GL_FLOAT, 0, 0);
+        square_array.addAttribute(1, 3, GL_FLOAT, 0, square_mesh.getCount() * 4 * 3);
+        square_array.addAttribute(2, 2, GL_FLOAT, 0, square_mesh.getCount() * 4 * (3 + 3));
         
         // Initialize camera matrices
         glm::mat4 projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
@@ -121,12 +138,23 @@ int main(int argc, char** argv) {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             float time = glfwGetTime();
-            view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 2.0f, glm::sin(time / 3) * 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 3.0f, glm::sin(time / 3) * 3.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             //model = glm::rotate(time, glm::vec3(1, 1, 1));
+            
+            // TODO might be able to enable face culling at some point?
             
             // Clear everything
             glClearColor(0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            
+            // Geometry helper)
+            #define DRAW_GEOMETRY(shader) \
+                shader.setUniform("model", model); \
+                cube_array.bind(); \
+                glDrawArrays(GL_TRIANGLES, 0, cube_mesh.getCount()); \
+                shader.setUniform("model", model); \
+                square_array.bind(); \
+                glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
             
             // Select depth shader
             depth_shader.use();
@@ -134,20 +162,19 @@ int main(int argc, char** argv) {
             depth_shader.setUniform("view", view);
             
             // Draw geometry
-            depth_shader.setUniform("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+            DRAW_GEOMETRY(depth_shader);
             
             // Do not override old depth
             glDepthMask(GL_FALSE);
             
             // Enable stencil to render shadows
-            //glEnable(GL_STENCIL_TEST);
+            glEnable(GL_STENCIL_TEST);
             
             // For each light...
             {
                 glm::vec3 light_position(1, 1, 2);
                 glm::vec3 light_color(1, 0.8, 0.2);
-                float light_radius(3);
+                float light_radius(5);
                 
                 // Clear stencil
                 glClear(GL_STENCIL_BUFFER_BIT);
@@ -157,11 +184,24 @@ int main(int argc, char** argv) {
                 glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
                 glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
                 
+                // Do not write color as well
+                glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+                
                 // Select extrusion shader
-                // TODO
+                extrusion_shader.use();
+                extrusion_shader.setUniform("projection", projection);
+                extrusion_shader.setUniform("view", view);
+                extrusion_shader.setUniform("light_position", light_position);
+                extrusion_shader.setUniform("light_radius", light_radius);
+                
+                // TODO depth clamp?
+                // see https://www.opengl.org/wiki_132/index.php?title=Vertex_Post-Processing&redirect=no#Depth_clamping
                 
                 // Draw geometry
-                //glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+                DRAW_GEOMETRY(extrusion_shader);
+                
+                // Now, write color
+                glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
                 
                 // Use stencil to only draw on non-zero area
                 glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_NOTEQUAL, 0, ~(GLint)0);
@@ -172,7 +212,7 @@ int main(int argc, char** argv) {
                 
                 // Use additive blend to combine lightmaps
                 glEnable(GL_BLEND);
-                glBlendEquation(GL_ADD);
+                glBlendEquation(GL_FUNC_ADD);
                 glBlendFunc(GL_ONE, GL_ONE);
                 
                 // Select shading shader
@@ -184,8 +224,7 @@ int main(int argc, char** argv) {
                 shading_shader.setUniform("light_radius", light_radius);
                 
                 // Draw geometry again to shade surfaces properly
-                shading_shader.setUniform("model", model);
-                glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+                DRAW_GEOMETRY(shading_shader);
                 
                 // Restore default values
                 glDisable(GL_BLEND);
@@ -200,7 +239,7 @@ int main(int argc, char** argv) {
             
             // Use multiplicative blend to combine light and texture
             glEnable(GL_BLEND);
-            glBlendEquation(GL_ADD);
+            glBlendEquation(GL_FUNC_ADD);
             glBlendFunc(GL_DST_COLOR, GL_ZERO);
             
             // Select texture shader
@@ -210,8 +249,7 @@ int main(int argc, char** argv) {
             texture_shader.setUniform("texture", 0);
             
             // Draw geometry again zo have textures
-            texture_shader.setUniform("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+            DRAW_GEOMETRY(texture_shader);
             
             // Restore defaults
             glDisable(GL_BLEND);
