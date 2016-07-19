@@ -84,6 +84,12 @@ int main(int argc, char** argv) {
         shading_shader.addSourceFile(GL_FRAGMENT_SHADER, "Shading.fs");
         shading_shader.link();
         
+        // Load texture shader
+        Shader texture_shader;
+        texture_shader.addSourceFile(GL_VERTEX_SHADER, "Texture.vs");
+        texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
+        texture_shader.link();
+        
         // Load simple mesh
         Mesh mesh;
         mesh.load("Cube.obj");
@@ -116,28 +122,11 @@ int main(int argc, char** argv) {
             glfwPollEvents();
             float time = glfwGetTime();
             view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 2.0f, glm::sin(time / 3) * 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            
-            model = glm::rotate(time, glm::vec3(1, 1, 1));
+            //model = glm::rotate(time, glm::vec3(1, 1, 1));
             
             // Clear everything
             glClearColor(0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-            
-            glm::vec3 light_position(1, 1, 2);
-            glm::vec3 light_color(1, 0.8, 0.2);
-            float light_radius(3);
-            
-            shading_shader.use();
-            shading_shader.setUniform("projection", projection);
-            shading_shader.setUniform("view", view);
-            shading_shader.setUniform("model", model);
-            shading_shader.setUniform("light_position", light_position);
-            shading_shader.setUniform("light_color", light_color);
-            shading_shader.setUniform("light_radius", light_radius);
-            glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
-            
-            
-            /*
             
             // Select depth shader
             depth_shader.use();
@@ -152,13 +141,13 @@ int main(int argc, char** argv) {
             glDepthMask(GL_FALSE);
             
             // Enable stencil to render shadows
-            glEnable(GL_STENCIL_TEST);
+            //glEnable(GL_STENCIL_TEST);
             
             // For each light...
             {
-                glm::vec3 light_position;
-                glm::vec3 light_color;
-                float light_radius;
+                glm::vec3 light_position(1, 1, 2);
+                glm::vec3 light_color(1, 0.8, 0.2);
+                float light_radius(3);
                 
                 // Clear stencil
                 glClear(GL_STENCIL_BUFFER_BIT);
@@ -171,28 +160,61 @@ int main(int argc, char** argv) {
                 // Select extrusion shader
                 // TODO
                 
-                // Move shadow geometry a bit closer
-                // https://www.opengl.org/wiki/GLAPI/glPolygonOffset
-                // TODO modify matrix
-                
                 // Draw geometry
-                glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+                //glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
                 
                 // Use stencil to only draw on non-zero area
                 glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_NOTEQUAL, 0, ~(GLint)0);
                 glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
                 
+                // Render only fragments that are exactly on geometry
+                glDepthFunc(GL_EQUAL);
+                
+                // Use additive blend to combine lightmaps
+                // TODO enable additive blend
+                
                 // Select shading shader
-                // TODO
+                shading_shader.use();
+                shading_shader.setUniform("projection", projection);
+                shading_shader.setUniform("view", view);
+                shading_shader.setUniform("light_position", light_position);
+                shading_shader.setUniform("light_color", light_color);
+                shading_shader.setUniform("light_radius", light_radius);
                 
                 // Draw geometry again to shade surfaces properly
+                shading_shader.setUniform("model", model);
                 glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
                 
+                // Restore default values
+                glDisable(GL_BLEND);
+                glDepthFunc(GL_LESS);
             }
+            
+            // Disable stencil
             glDisable(GL_STENCIL_TEST);
             
-            */
+            // Render only fragments that are exactly on geometry
+            glDepthFunc(GL_EQUAL);
             
+            // Use multiplicative blend to combine light and texture
+            // TODO
+            
+            // Select texture shader
+            texture_shader.use();
+            texture_shader.setUniform("projection", projection);
+            texture_shader.setUniform("view", view);
+            texture_shader.setUniform("texture", 0);
+            
+            // Draw geometry again zo have textures
+            texture_shader.setUniform("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+            
+            // Restore defaults
+            glDisable(GL_BLEND);
+            glDepthFunc(GL_LESS);
+            glDepthMask(GL_TRUE);
+            
+            // Swap buffers
             glfwSwapBuffers(window);
         }
     }
