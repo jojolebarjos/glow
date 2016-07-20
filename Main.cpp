@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     std::cout << "GLEW: " << glewGetString(GLEW_VERSION) << std::endl;
     std::cout << "GLM: " << GLM_VERSION_MAJOR << '.' << GLM_VERSION_MINOR << '.' << GLM_VERSION_PATCH << '.' << GLM_VERSION_REVISION << std::endl;
     std::cout << "libjpeg: " << (JPEG_LIB_VERSION / 10) << (char)(JPEG_LIB_VERSION % 10 + 'a' - 1) << std::endl;
+    std::cout << "Bullet: " << (BT_BULLET_VERSION / 100) << '.' << ((BT_BULLET_VERSION / 10) % 10) << '.' << (BT_BULLET_VERSION % 10) << std::endl;
     
     // Initialize GLFW
     if (!glfwInit())
@@ -56,7 +57,6 @@ int main(int argc, char** argv) {
     
     // Game loop
     {
-        /*
         Scene scene(window);
         scene.initialize();
         while (!glfwWindowShouldClose(window)) {
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
             scene.render();
             glfwSwapBuffers(window);
         }
-        */
+        /*
         Smoke smoke(window);
         smoke.initialize();
         while (!glfwWindowShouldClose(window)) {
@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
             smoke.update();
             glfwSwapBuffers(window);
         }
+        */
     }
     
     // Clean up
