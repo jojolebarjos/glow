@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
             glClearColor(0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             
-            // Geometry helper)
+            // Geometry helper
             #define DRAW_GEOMETRY(shader) \
                 shader.setUniform("model", model); \
                 cube_array.bind(); \
@@ -181,8 +181,8 @@ int main(int argc, char** argv) {
                 
                 // Use Carmack's reverse shadow volume strategy
                 glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_ALWAYS, 0, ~(GLint)0);
-                glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR, GL_KEEP);
-                glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR, GL_KEEP);
+                glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+                glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
                 
                 // Do not write color as well
                 glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
                 glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
                 
                 // Use stencil to only draw on non-zero area
-                glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_NOTEQUAL, 0, ~(GLint)0);
+                glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_EQUAL, 0, ~(GLint)0);
                 glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
                 
                 // Render only fragments that are exactly on geometry

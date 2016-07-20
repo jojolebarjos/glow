@@ -19,6 +19,11 @@ void main() {
     // Compute center of mass
     vec3 d = (a + b + c) / 3.0;
 
+    // Compute normal and check orientation w.r.t. the light
+    vec3 n = cross(b - a, c - a);
+    if (dot(n, d - light_position) >= 0.0)
+        return;
+
     // Extrude vertices w.r.t light position
     vec3 ap = a + normalize(a - light_position) * (2.0 * light_radius);
     vec3 bp = b + normalize(b - light_position) * (2.0 * light_radius);
