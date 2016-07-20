@@ -183,7 +183,21 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>8</standard>
         </ccTool>
+		<linkerTool>
+          <linkerLibItems>
+            <linkerOptionItem>-lglfw3dll</linkerOptionItem>
+            <linkerOptionItem>-lglew32</linkerOptionItem>
+            <linkerOptionItem>-lopengl32</linkerOptionItem>
+            <linkerOptionItem>-lglu32</linkerOptionItem>
+            <linkerOptionItem>-lgdi32</linkerOptionItem>
+            <linkerOptionItem>-ljpeg</linkerOptionItem>
+            <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
+            <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
+            <linkerOptionItem>-lLinearMath.dll</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
         </fortranCompilerTool>
