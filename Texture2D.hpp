@@ -20,8 +20,7 @@ public:
     void bind(int slot);
     
     void create(Image image);
-    // TODO add uninitialized texture as an option
-    // TODO add floating point texture as an option?
+    void create(int width, int height, bool floating = false);
     
     void setInterpolation(bool linear);
     

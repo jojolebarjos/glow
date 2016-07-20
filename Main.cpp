@@ -1,6 +1,7 @@
 
 #include "Common.hpp"
 #include "Scene.hpp"
+#include "Smoke.hpp"
 
 extern "C" {
 #include <jpeglib.h>
@@ -55,12 +56,21 @@ int main(int argc, char** argv) {
     
     // Game loop
     {
+        /*
         Scene scene(window);
         scene.initialize();
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             scene.update();
             scene.render();
+            glfwSwapBuffers(window);
+        }
+        */
+        Smoke smoke(window);
+        smoke.initialize();
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+            smoke.update();
             glfwSwapBuffers(window);
         }
     }

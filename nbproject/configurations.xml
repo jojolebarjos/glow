@@ -12,6 +12,7 @@
       <itemPath>Mesh.hpp</itemPath>
       <itemPath>Scene.hpp</itemPath>
       <itemPath>Shader.hpp</itemPath>
+      <itemPath>Smoke.hpp</itemPath>
       <itemPath>Texture2D.hpp</itemPath>
       <itemPath>VertexArray.hpp</itemPath>
     </logicalFolder>
@@ -26,6 +27,11 @@
       <itemPath>Extrusion.vs</itemPath>
       <itemPath>Shading.fs</itemPath>
       <itemPath>Shading.vs</itemPath>
+      <itemPath>Smoke.vs</itemPath>
+      <itemPath>Smoke1.fs</itemPath>
+      <itemPath>Smoke2.fs</itemPath>
+      <itemPath>Smoke3.fs</itemPath>
+      <itemPath>Smoke4.fs</itemPath>
       <itemPath>Square.obj</itemPath>
       <itemPath>Test.bmp</itemPath>
       <itemPath>Texture.fs</itemPath>
@@ -42,6 +48,7 @@
       <itemPath>Mesh.cpp</itemPath>
       <itemPath>Scene.cpp</itemPath>
       <itemPath>Shader.cpp</itemPath>
+      <itemPath>Smoke.cpp</itemPath>
       <itemPath>Texture2D.cpp</itemPath>
       <itemPath>VertexArray.cpp</itemPath>
     </logicalFolder>
@@ -133,6 +140,20 @@
       </item>
       <item path="Shading.vs" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Smoke.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Smoke.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke.vs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke1.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke2.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke3.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke4.fs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Test.bmp" ex="false" tool="3" flavor2="0">
@@ -217,6 +238,20 @@
       <item path="Shading.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Shading.vs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Smoke.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke.vs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke1.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke2.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke3.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Smoke4.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
       </item>

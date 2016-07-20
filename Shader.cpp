@@ -99,11 +99,27 @@ void Shader::setUniform(std::string const & name, GLint x) {
     setUniform(getUniformLocation(name), x);
 }
 
+void Shader::setUniform(GLint location, glm::vec2 const & v) {
+    glUniform2f(location, v.x, v.y);
+}
+
+void Shader::setUniform(std::string const & name, glm::vec2 const & v) {
+    setUniform(getUniformLocation(name), v);
+}
+
 void Shader::setUniform(GLint location, glm::vec3 const & v) {
     glUniform3f(location, v.x, v.y, v.z);
 }
 
 void Shader::setUniform(std::string const & name, glm::vec3 const & v) {
+    setUniform(getUniformLocation(name), v);
+}
+
+void Shader::setUniform(GLint location, glm::vec4 const & v) {
+    glUniform4f(location, v.x, v.y, v.z, v.w);
+}
+
+void Shader::setUniform(std::string const & name, glm::vec4 const & v) {
     setUniform(getUniformLocation(name), v);
 }
 
