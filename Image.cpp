@@ -2,6 +2,11 @@
 #include "Image.hpp"
 
 #include <cstdio>
+#include <setjmp.h>
+
+extern "C" {
+#include <jpeglib.h>
+}
 
 Image::Image() : width(0), height(0) {}
 
@@ -89,7 +94,78 @@ bool Image::loadPng(std::string const & path) {
     return false;
 }
 
+namespace {
+
+struct jpeg_error_struct {
+    struct jpeg_error_mgr pub;
+    jmp_buf setjmp_buffer;
+};
+
+void jpeg_error(j_common_ptr info) {
+    jpeg_error_struct * err = (jpeg_error_struct*)info->err;
+    longjmp(err->setjmp_buffer, 1);
+}
+
+}
+
 bool Image::loadJpg(std::string const & path) {
-    // TODO use libJPEG
-    return false;
+    // http://www.opensource.apple.com/source/tcl/tcl-87/tcl_ext/tkimg/tkimg/libjpeg/libjpeg.doc
+    // http://stackoverflow.com/questions/5616216/need-help-in-reading-jpeg-file-using-libjpeg
+    // http://stackoverflow.com/questions/19857766/error-handling-in-libjpeg
+
+    // Open file
+    FILE * file = fopen(path.c_str(), "rb");
+    if (!file)
+        return false;
+    
+    // Create JPEG objects
+    JSAMPLE * buffer = nullptr;
+    struct jpeg_decompress_struct info;
+    jpeg_error_struct err;
+    info.err = jpeg_std_error(&err.pub);
+    err.pub.error_exit = jpeg_error;
+
+    // Error handler
+    if (setjmp(err.setjmp_buffer)) {
+        jpeg_destroy_decompress(&info);
+        fclose(file);
+        delete buffer;
+        return false;
+    }
+
+    // Setup IO
+    jpeg_create_decompress(&info);
+    jpeg_stdio_src(&info, file);
+
+    // Read infos
+    jpeg_read_header(&info, TRUE);
+    width = info.image_width;
+    height = info.image_height;
+
+    // Configure RGB 8bits
+    info.out_color_space = JCS_RGB;
+    info.out_color_components = 3;
+    info.output_components = 3;
+
+    // Read image
+    colors.resize(width * height);
+    buffer = new JSAMPLE[width * 3];
+    jpeg_start_decompress(&info);
+    for (unsigned y = 0; y < height; ++y) {
+        jpeg_read_scanlines(&info, &buffer, 1);
+        JSAMPLE * line = (JSAMPLE*)&colors[(height - y - 1) * width];
+        for (unsigned i = 0; i < width; ++i) {
+            line[4 * i    ] = buffer[3 * i    ];
+            line[4 * i + 1] = buffer[3 * i + 1];
+            line[4 * i + 2] = buffer[3 * i + 2];
+            line[4 * i + 3] = (JSAMPLE)0xff;
+        }
+    }
+    jpeg_finish_decompress(&info);
+
+    // Clean up
+    jpeg_destroy_decompress(&info);
+    fclose(file);
+    delete buffer;
+    return true;
 }

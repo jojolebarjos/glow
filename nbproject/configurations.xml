@@ -55,6 +55,7 @@
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
+      <itemPath>Readme.md</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -71,7 +72,14 @@
           <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
-          <commandLine>-lglfw3dll -lglew32 -lopengl32 -lglu32 -lgdi32</commandLine>
+          <linkerLibItems>
+            <linkerOptionItem>-lglfw3dll</linkerOptionItem>
+            <linkerOptionItem>-lglew32</linkerOptionItem>
+            <linkerOptionItem>-lopengl32</linkerOptionItem>
+            <linkerOptionItem>-lglu32</linkerOptionItem>
+            <linkerOptionItem>-lgdi32</linkerOptionItem>
+            <linkerOptionItem>-ljpeg</linkerOptionItem>
+          </linkerLibItems>
         </linkerTool>
       </compileType>
       <item path="Buffer.cpp" ex="false" tool="1" flavor2="0">

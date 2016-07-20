@@ -2,6 +2,10 @@
 #include "Common.hpp"
 #include "Scene.hpp"
 
+extern "C" {
+#include <jpeglib.h>
+}
+
 // Debug context seems to cause issues with gDebugger :/
 //#define DEBUG_CONTEXT
 
@@ -17,6 +21,7 @@ int main(int argc, char** argv) {
     std::cout << "GLFW: " << glfwGetVersionString() << std::endl;
     std::cout << "GLEW: " << glewGetString(GLEW_VERSION) << std::endl;
     std::cout << "GLM: " << GLM_VERSION_MAJOR << '.' << GLM_VERSION_MINOR << '.' << GLM_VERSION_PATCH << '.' << GLM_VERSION_REVISION << std::endl;
+    std::cout << "libjpeg: " << (JPEG_LIB_VERSION / 10) << (char)(JPEG_LIB_VERSION % 10 + 'a' - 1) << std::endl;
     
     // Initialize GLFW
     if (!glfwInit())
