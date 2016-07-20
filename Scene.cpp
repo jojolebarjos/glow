@@ -1,13 +1,26 @@
 
 #include "Scene.hpp"
 
-Scene::Scene(GLFWwindow * window) : window(window) {}
+Scene::Scene(GLFWwindow * window) : window(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
+
+Scene::~Scene() {
+    while (!objects.empty())
+        delete objects.front();
+    delete world;
+    delete solver;
+    delete dispatcher;
+    delete configuration;
+    delete broadphase;
+}
 
 bool Scene::initialize() {
     // TODO handle errors
     
     // Get screen size
     glfwGetFramebufferSize(window, &width, &height);
+    
+    // Initialize time
+    time = 0;
     
     // Initialize matrices
     projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
@@ -68,13 +81,44 @@ bool Scene::initialize() {
     texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
     texture_shader.link();
     
+    // Create physics
+    broadphase = new btDbvtBroadphase();
+    configuration = new btDefaultCollisionConfiguration();
+    dispatcher = new btCollisionDispatcher(configuration);
+    solver = new btSequentialImpulseConstraintSolver();
+    world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, configuration);
+    world->setGravity({0, 0, -10});
+    
+    // Create floor
+    Object * plane = addObject(new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
+    plane->mesh = &square_mesh;
+    plane->array = &square_array;
+    plane->texture = &texture;
+    
     return true;
 }
 
 void Scene::update() {
-    float time = glfwGetTime();
-    view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 3.0f, glm::sin(time / 3) * 3.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // ...
+    
+    // Update time
+    float now = glfwGetTime();
+    float delta = now - time;
+    time = now;
+    
+    // Add cube if requested
+    static bool just = false;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
+        addCube({0, 0, 5});
+        just = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+        just = false;
+    
+    // Simulate world
+    world->stepSimulation(delta, 10);
+    
+    // Update camera
+    view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 5.0f, glm::sin(time / 3) * 5.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
 void Scene::render() {
@@ -187,23 +231,64 @@ void Scene::render() {
 }
 
 void Scene::drawUntexturedObjects(Shader & shader) {
-    // later, this will use game object structure to render only relevant meshes
-    glm::mat4 model = glm::mat4();
-    shader.setUniform("model", model); \
-    cube_array.bind(); \
-    glDrawArrays(GL_TRIANGLES, 0, cube_mesh.getCount()); \
-    shader.setUniform("model", model); \
-    square_array.bind(); \
-    glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
+    // TODO avoid unnecessary state changes with dedicated draw
+    drawTexturedObjects(shader);
 }
 
 void Scene::drawCasterObjects(Shader & shader) {
-    // later, this will not render details, like particles
+    // TODO some objects do not cast shadows
     drawUntexturedObjects(shader);
 }
 
 void Scene::drawTexturedObjects(Shader & shader) {
-    // later, this will have to bind specific texture for each object (or use an atlas/texture array)
-    texture.bind(0);
-    drawUntexturedObjects(shader);
+    for (Object * object : objects) {
+        glm::mat4 model = object->getTransform();
+        shader.setUniform("model", model);
+        object->texture->bind(0);
+        object->array->bind();
+        glDrawArrays(GL_TRIANGLES, 0, object->mesh->getCount());
+    }
+}
+
+Scene::Object::~Object() {
+    scene->world->removeRigidBody(body);
+    delete shape;
+    delete body->getMotionState();
+    delete body;
+    scene->objects.erase(iterator);
+}
+
+glm::mat4 Scene::Object::getTransform() {
+    btTransform transform;
+    body->getMotionState()->getWorldTransform(transform);
+    glm::mat4 matrix;
+    transform.getOpenGLMatrix(glm::value_ptr(matrix));
+    return matrix;
+}
+
+Scene::Object * Scene::addObject(btCollisionShape * shape, glm::vec3 const & position, float mass) {
+    Object * result = new Object();
+    result->scene = this;
+    result->shape = shape;
+    btMotionState * state = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(position.x, position.y, position.z)));
+    btVector3 inertia(0, 0, 0);
+    shape->calculateLocalInertia(mass, inertia);
+    btRigidBody::btRigidBodyConstructionInfo ci(mass, state, shape, inertia);
+    result->body = new btRigidBody(ci);
+    world->addRigidBody(result->body);
+    objects.push_front(result);
+    result->iterator = objects.begin();
+    result->mesh = nullptr;
+    result->array = nullptr;
+    result->texture = nullptr;
+    return result;
+}
+
+Scene::Object * Scene::addCube(glm::vec3 const & position) {
+    btBoxShape * shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
+    Object * result = addObject(shape, position, 1.0f);
+    result->mesh = &cube_mesh;
+    result->array = &cube_array;
+    result->texture = &texture;
+    return result;
 }

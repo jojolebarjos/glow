@@ -13,9 +13,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+#include "btBulletCollisionCommon.h"
+#include "btBulletDynamicsCommon.h"
+
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -87,6 +91,14 @@ inline char const * glGetFriendlyName(GLenum name) {
             
     }
     return "<unknown>";
+}
+
+inline btVector3 fromGLM(glm::vec3 const & v) {
+    return btVector3(v.x, v.y, v.z);
+}
+
+inline glm::vec3 toGLM(btVector3 const & v) {
+    return glm::vec3(v.x(), v.y(), v.z());
 }
 
 #endif

@@ -79,6 +79,9 @@
             <linkerOptionItem>-lglu32</linkerOptionItem>
             <linkerOptionItem>-lgdi32</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
+            <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
+            <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
+            <linkerOptionItem>-lLinearMath.dll</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

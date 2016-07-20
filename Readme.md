@@ -15,3 +15,4 @@
 * [GLM](http://glm.g-truc.net/)
 * [GLFW 3](http://www.glfw.org/)
 * [libjpeg](http://libjpeg.sourceforge.net/)
+* [Bullet](https://github.com/bulletphysics/bullet3)
