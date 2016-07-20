@@ -8,11 +8,15 @@
 #ifdef DEBUG_CONTEXT
 static void APIENTRY debug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const * message, void const * userParam) {
     std::cout << glGetFriendlyName(source) << ':' << glGetFriendlyName(type) << ':' << glGetFriendlyName(severity) << ' ' << message << std::endl;
-    // TODO if we use that, is shader log still useful?
 }
 #endif
 
 int main(int argc, char** argv) {
+    
+    // Print libraries infos
+    std::cout << "GLFW: " << glfwGetVersionString() << std::endl;
+    std::cout << "GLEW: " << glewGetString(GLEW_VERSION) << std::endl;
+    std::cout << "GLM: " << GLM_VERSION_MAJOR << '.' << GLM_VERSION_MINOR << '.' << GLM_VERSION_PATCH << '.' << GLM_VERSION_REVISION << std::endl;
     
     // Initialize GLFW
     if (!glfwInit())
@@ -37,9 +41,12 @@ int main(int argc, char** argv) {
     // Enable OpenGL debugging
 #ifdef DEBUG_CONTEXT
     glEnable(GL_DEBUG_OUTPUT);
-    // TODO glDebugMessageControl?
     glDebugMessageCallback(debug, nullptr);
 #endif
+    
+    // Print OpenGL infos
+    std::cout << "OpenGL: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
     
     // Game loop
     {
