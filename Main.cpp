@@ -156,6 +156,17 @@ int main(int argc, char** argv) {
                 square_array.bind(); \
                 glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
             
+            // Light helper
+            struct Light {
+                glm::vec3 position;
+                glm::vec3 color;
+                float radius;
+            };
+            std::vector<Light> lights = {
+                {{1, 1, 2}, {1, 0.8, 0.2}, 5},
+                {{-1, 0, 3}, {0.2, 0.4, 1}, 5}
+            };
+            
             // Select depth shader
             depth_shader.use();
             depth_shader.setUniform("projection", projection);
@@ -171,10 +182,7 @@ int main(int argc, char** argv) {
             glEnable(GL_STENCIL_TEST);
             
             // For each light...
-            {
-                glm::vec3 light_position(1, 1, 2);
-                glm::vec3 light_color(1, 0.8, 0.2);
-                float light_radius(5);
+            for (Light & light : lights) {
                 
                 // Clear stencil
                 glClear(GL_STENCIL_BUFFER_BIT);
@@ -191,8 +199,8 @@ int main(int argc, char** argv) {
                 extrusion_shader.use();
                 extrusion_shader.setUniform("projection", projection);
                 extrusion_shader.setUniform("view", view);
-                extrusion_shader.setUniform("light_position", light_position);
-                extrusion_shader.setUniform("light_radius", light_radius);
+                extrusion_shader.setUniform("light_position", light.position);
+                extrusion_shader.setUniform("light_radius", light.radius);
                 
                 // TODO depth clamp?
                 // see https://www.opengl.org/wiki_132/index.php?title=Vertex_Post-Processing&redirect=no#Depth_clamping
@@ -219,9 +227,9 @@ int main(int argc, char** argv) {
                 shading_shader.use();
                 shading_shader.setUniform("projection", projection);
                 shading_shader.setUniform("view", view);
-                shading_shader.setUniform("light_position", light_position);
-                shading_shader.setUniform("light_color", light_color);
-                shading_shader.setUniform("light_radius", light_radius);
+                shading_shader.setUniform("light_position", light.position);
+                shading_shader.setUniform("light_color", light.color);
+                shading_shader.setUniform("light_radius", light.radius);
                 
                 // Draw geometry again to shade surfaces properly
                 DRAW_GEOMETRY(shading_shader);
