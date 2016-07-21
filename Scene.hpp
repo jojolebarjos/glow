@@ -3,12 +3,7 @@
 #define GLOW_SCENE_HPP
 
 #include "Common.hpp"
-#include "Shader.hpp"
-#include "Image.hpp"
-#include "Texture2D.hpp"
-#include "Mesh.hpp"
-#include "Buffer.hpp"
-#include "VertexArray.hpp"
+#include "Renderer.hpp"
 
 class Scene {
 public:
@@ -21,11 +16,6 @@ public:
     
     bool initialize();
     void update();
-    void render();
-    
-    void drawUntexturedObjects(Shader & shader);
-    void drawCasterObjects(Shader & shader);
-    void drawTexturedObjects(Shader & shader);
     
 private:
 
@@ -35,31 +25,7 @@ private:
     
     float time;
     
-    glm::mat4 projection;
-    glm::mat4 view;
-    
-    struct Light {
-        glm::vec3 position;
-        glm::vec3 color;
-        float radius;
-    };
-    std::vector<Light> lights;
-    
-    Image image;
-    Texture2D texture;
-    
-    Mesh cube_mesh;
-    Buffer cube_buffer;
-    VertexArray cube_array;
-    
-    Mesh square_mesh;
-    Buffer square_buffer;
-    VertexArray square_array;
-    
-    Shader depth_shader;
-    Shader extrusion_shader;
-    Shader shading_shader;
-    Shader texture_shader;
+    Renderer renderer;
     
     btDynamicsWorld * world;
     btConstraintSolver * solver;
@@ -73,9 +39,7 @@ private:
         std::list<Object *>::iterator iterator;
         btCollisionShape * shape;
         btRigidBody * body;
-        Mesh * mesh;
-        VertexArray * array;
-        Texture2D * texture;
+        Renderer::MeshInfo mesh;
         
         ~Object();
         

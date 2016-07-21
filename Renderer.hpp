@@ -1,0 +1,91 @@
+
+#ifndef GLOW_RENDERER_HPP
+#define GLOW_RENDERER_HPP
+
+#include "Common.hpp"
+#include "Buffer.hpp"
+#include "Image.hpp"
+#include "Mesh.hpp"
+#include "Texture2D.hpp"
+#include "VertexArray.hpp"
+#include "Shader.hpp"
+
+class Renderer {
+public:
+    
+    struct LightInfo {
+        glm::vec3 position;
+        float radius;
+        glm::vec3 color;
+    };
+    
+    struct MeshInfo {
+        glm::mat4 transform;
+        GLuint mesh;
+        GLuint color;
+        // TODO light, normal, material...
+    };
+    
+    Renderer(GLFWwindow * window);
+    ~Renderer();
+    
+    Renderer(Renderer const &) = delete;
+    Renderer & operator=(Renderer const &) = delete;
+    
+    bool initialize();
+    
+    GLuint loadMesh(std::string const & path);
+    
+    GLuint loadImage(std::string const & path);
+    
+    void pack();
+    
+    void addLight(LightInfo const & light);
+    
+    void addMesh(MeshInfo const & mesh);
+    
+    void clear();
+    
+    void setView(glm::mat4 const & view);
+    
+    void render();
+    
+private:
+    
+    void drawUntexturedObjects(Shader & shader);
+    void drawCasterObjects(Shader & shader);
+    void drawTexturedObjects(Shader & shader);
+    
+    GLFWwindow * window;
+    int width;
+    int height;
+
+    std::map<std::string, GLuint> meshNames;
+    std::map<std::string, GLuint> imageNames;
+    
+    std::vector<Mesh> meshDatas;
+    std::vector<Image> imageDatas;
+    
+    std::vector<glm::ivec2> meshMaps;
+    std::vector<glm::ivec2> imageMaps;
+    
+    Buffer buffer;
+    VertexArray array;
+    // TODO use texture array
+    std::vector<Texture2D *> textures;
+    
+    std::vector<LightInfo> lights;
+    std::vector<MeshInfo> meshes;
+    // TODO other temporary buffers (particles, ...)
+    
+    glm::mat4 projection;
+    glm::mat4 view;
+    
+    Shader depth_shader;
+    Shader extrusion_shader;
+    Shader shading_shader;
+    Shader texture_shader;
+    
+};
+
+#endif

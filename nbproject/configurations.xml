@@ -10,6 +10,7 @@
       <itemPath>Framebuffer.hpp</itemPath>
       <itemPath>Image.hpp</itemPath>
       <itemPath>Mesh.hpp</itemPath>
+      <itemPath>Renderer.hpp</itemPath>
       <itemPath>Scene.hpp</itemPath>
       <itemPath>Shader.hpp</itemPath>
       <itemPath>Smoke.hpp</itemPath>
@@ -46,6 +47,7 @@
       <itemPath>Image.cpp</itemPath>
       <itemPath>Main.cpp</itemPath>
       <itemPath>Mesh.cpp</itemPath>
+      <itemPath>Renderer.cpp</itemPath>
       <itemPath>Scene.cpp</itemPath>
       <itemPath>Shader.cpp</itemPath>
       <itemPath>Smoke.cpp</itemPath>
@@ -128,6 +130,10 @@
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Scene.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Scene.hpp" ex="false" tool="3" flavor2="0">
@@ -185,7 +191,13 @@
           <developmentMode>5</developmentMode>
           <standard>8</standard>
         </ccTool>
-		<linkerTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
           <linkerLibItems>
             <linkerOptionItem>-lglfw3dll</linkerOptionItem>
             <linkerOptionItem>-lglew32</linkerOptionItem>
@@ -198,12 +210,6 @@
             <linkerOptionItem>-lLinearMath.dll</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-        </asmTool>
       </compileType>
       <item path="Buffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -240,6 +246,10 @@
       <item path="Mesh.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Scene.cpp" ex="false" tool="1" flavor2="0">
       </item>

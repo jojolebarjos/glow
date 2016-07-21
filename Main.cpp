@@ -62,7 +62,6 @@ int main(int argc, char** argv) {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             scene.update();
-            scene.render();
             glfwSwapBuffers(window);
         }
         /*
