@@ -16,6 +16,7 @@ public:
     bool load(std::string const & path);
     bool loadWav(std::string const & path);
     bool loadOgg(std::string const & path);
+    // TODO add an option to force mono
     
     ALenum getFormat() const;
     uint32_t getChannels() const;

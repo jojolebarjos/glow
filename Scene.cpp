@@ -44,6 +44,9 @@ bool Scene::initialize() {
     
     // Prepare listener
     listener.initialize();
+    Sampler sampler;
+    sampler.load("Test.wav");
+    listener.addSound(sampler);
     
     return true;
 }
@@ -58,7 +61,8 @@ void Scene::update() {
     // Add cube if requested
     static bool just = false;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
-        addCube({0, 0, 5});
+        addCube({5, 0, 5});
+        listener.playSound(0, {5, 0, 0});
         just = true;
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)

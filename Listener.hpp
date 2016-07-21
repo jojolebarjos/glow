@@ -3,9 +3,12 @@
 #define GLOW_LISTENER_HPP
 
 #include "Common.hpp"
+#include "Sampler.hpp"
 
 class Listener {
 public:
+    
+    // See https://www.openal.org/documentation/OpenAL_Programmers_Guide.pdf
     
     Listener();
     ~Listener();
@@ -26,8 +29,10 @@ public:
     
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
     
-    // TODO play sound
-    // TODO hide playback behind virtual sources to avoid limitations
+    uint32_t addSound(Sampler & sampler);
+    
+    int32_t playSound(uint32_t sound, glm::vec3 const & position);
+    
     
     // TODO play streamed sound (a.k.a. music) using circular buffer
     
@@ -44,6 +49,21 @@ private:
     
     // TODO cache data (e.g. listener infos)?)
 
+    struct Sound {
+        ALuint handle;
+        // TODO what is needed?
+    };
+    std::vector<Sound> sounds;
+    
+    struct Source {
+        ALuint handle;
+        // TODO what is needed?
+    };
+    std::vector<Source> sources;
+    
+    // TODO keep a list of virtual sources
+    // TODO can be either managed (i.e. they disappear when they finish) or unmanaged (i.e. the user need to do something) sources
+    
 };
 
 #endif
