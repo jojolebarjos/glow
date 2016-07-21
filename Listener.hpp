@@ -4,9 +4,6 @@
 
 #include "Common.hpp"
 
-#include <AL/al.h>
-#include <AL/alc.h>
-
 class Listener {
 public:
     
@@ -41,7 +38,7 @@ public:
     //  - distant sound http://filmsound.org/QA/distantsounds.htm
     
 private:
-    
+
     ALCdevice * device;
     ALCcontext * context;
     

@@ -13,6 +13,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
