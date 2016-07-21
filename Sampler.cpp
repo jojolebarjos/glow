@@ -74,6 +74,10 @@ uint32_t Sampler::read(void * buffer, uint32_t samples) {
 }
 
 Sampler::Reader * Sampler::createWav(std::string const & path) {
+    // http://soundfile.sapp.org/doc/WaveFormat/
+    // http://www.topherlee.com/software/pcm-tut-wavformat.html
+    // http://unusedino.de/ec64/technical/formats/wav.html
+    
     struct WavReader : Reader {
         FILE * file;
         uint32_t start;
@@ -153,11 +157,9 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
         }
         
         uint32_t read(void * buffer, uint32_t samples) {
-            uint32_t sample_size = channels * bits / 8;
-            uint32_t max_samples = (size - offset) / sample_size;
-            uint32_t samples_read = fread(buffer, glm::min(samples, max_samples), sample_size, file);
-            offset += samples_read;
-            return samples_read;
+            samples = fread(buffer, glm::min(samples, size - offset), channels * bits / 8, file);
+            offset += samples;
+            return samples;
         }
         
     };

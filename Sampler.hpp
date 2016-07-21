@@ -30,7 +30,6 @@ public:
     void rewind();
     uint32_t read(void * buffer, uint32_t samples);
     
-    
 private:
 
     struct Reader {
