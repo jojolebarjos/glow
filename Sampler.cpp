@@ -11,20 +11,20 @@ Sampler::~Sampler() {
     delete reader;
 }
 
-bool Sampler::load(std::string const & path) {
+bool Sampler::load(std::string const & path, Conversion conversion) {
     // TODO improve this based on extension
-    return loadWav(path) || loadOgg(path);
+    return loadWav(path, conversion) || loadOgg(path, conversion);
 }
 
-bool Sampler::loadWav(std::string const & path) {
+bool Sampler::loadWav(std::string const & path, Conversion conversion) {
     delete reader;
-    reader = createWav(path);
+    reader = createResampler(createWav(path), conversion);
     return reader;
 }
 
-bool Sampler::loadOgg(std::string const & path) {
+bool Sampler::loadOgg(std::string const & path, Conversion conversion) {
     delete reader;
-    reader = createOgg(path);
+    reader = createResampler(createOgg(path), conversion);
     return reader;
 }
 
@@ -157,7 +157,7 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
         }
         
         uint32_t read(void * buffer, uint32_t samples) {
-            samples = fread(buffer, glm::min(samples, size - offset), channels * bits / 8, file);
+            samples = fread(buffer, channels * bits / 8, glm::min(samples, size - offset), file);
             offset += samples;
             return samples;
         }
@@ -173,4 +173,95 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
 Sampler::Reader * Sampler::createOgg(std::string const & path) {
     // TODO use ogg vorbis
     return nullptr;
+}
+
+#define RESAMPLER_SIZE 1024
+
+Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversion) {
+    // http://dsp.stackexchange.com/questions/3581/algorithms-to-mix-audio-signals-without-clipping
+    
+    struct Resampler : Reader {
+        Reader * reader;
+        Conversion conversion;
+        char tmp[RESAMPLER_SIZE * 4];
+        
+        Resampler(Reader * reader, Conversion conversion) : reader(reader), conversion(conversion) {
+            format = reader->format == AL_FORMAT_STEREO16 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
+            channels = 1;
+            bits = reader->bits;
+            frequency = reader->frequency;
+            size = reader->size;
+            offset = reader->offset;
+        }
+        
+        ~Resampler() {
+            delete reader;
+        }
+        
+        void rewind() {
+            reader->rewind();
+        }
+        
+        uint32_t read(void * buffer, uint32_t samples) {
+            
+            // Split large read into smaller ones
+            uint32_t total = 0;
+            while (samples > RESAMPLER_SIZE) {
+                uint32_t subcount = read(buffer, RESAMPLER_SIZE);
+                total += subcount;
+                if (subcount < RESAMPLER_SIZE)
+                    return total;
+                buffer = ((char *)buffer) + RESAMPLER_SIZE * bits / 8;
+                samples -= RESAMPLER_SIZE;
+            }
+            
+            // Read a chunk
+            uint32_t count = reader->read(tmp, samples);
+            total += count;
+            
+            // Convert to mono
+            switch (conversion) {
+                case LEFT:
+                    if (format == AL_FORMAT_MONO8) {
+                        for (uint32_t i = 0; i < count; ++i)
+                            ((int8_t *)buffer)[i] = ((int8_t *)tmp)[2 * i];
+                    } else {
+                        for (uint32_t i = 0; i < count; ++i)
+                            ((int16_t *)buffer)[i] = ((int16_t *)tmp)[2 * i];
+                    }
+                    break;
+                case RIGHT:
+                    if (format == AL_FORMAT_MONO8) {
+                        for (uint32_t i = 0; i < count; ++i)
+                            ((int8_t *)buffer)[i] = ((int8_t *)tmp)[2 * i + 1];
+                    } else {
+                        for (uint32_t i = 0; i < count; ++i)
+                            ((int16_t *)buffer)[i] = ((int16_t *)tmp)[2 * i + 1];
+                    }
+                    break;
+                default:
+                    if (format == AL_FORMAT_MONO8) {
+                        for (uint32_t i = 0; i < count; ++i) {
+                            float left = ((int8_t *)tmp)[2 * i] / 127.0f;
+                            float right = ((int8_t *)tmp)[2 * i + 1] / 127.0f;
+                            float combined = glm::tanh(left + right);
+                            ((int8_t *)buffer)[i] = (int8_t)(combined * 127.0f);
+                        }
+                    } else {
+                        for (uint32_t i = 0; i < count; ++i) {
+                            float left = ((int16_t *)tmp)[2 * i] / 32767.0f;
+                            float right = ((int16_t *)tmp)[2 * i + 1] / 32767.0f;
+                            float combined = glm::tanh(left + right);
+                            ((int16_t *)buffer)[i] = (int16_t)(combined * 32767.0f);
+                        }
+                    }
+                    break;
+            }
+            return total;
+        }
+        
+    };
+    if (conversion == NONE || reader == nullptr || reader->channels != 2)
+        return reader;
+    return new Resampler(reader, conversion);
 }

@@ -7,16 +7,23 @@
 class Sampler {
 public:
     
+    enum Conversion {
+        NONE,
+        LEFT,
+        RIGHT,
+        SUM
+        // Note: forcing stereo is useless
+    };
+    
     Sampler();
     ~Sampler();
     
     Sampler(Sampler const &) = delete;
     Sampler & operator=(Sampler const &) = delete;
     
-    bool load(std::string const & path);
-    bool loadWav(std::string const & path);
-    bool loadOgg(std::string const & path);
-    // TODO add an option to force mono
+    bool load(std::string const & path, Conversion conversion = NONE);
+    bool loadWav(std::string const & path, Conversion conversion = NONE);
+    bool loadOgg(std::string const & path, Conversion conversion = NONE);
     
     ALenum getFormat() const;
     uint32_t getChannels() const;
@@ -48,6 +55,8 @@ private:
     
     Reader * createWav(std::string const & path);
     Reader * createOgg(std::string const & path);
+    
+    Reader * createResampler(Reader * reader, Conversion conversion);
     
 };
 

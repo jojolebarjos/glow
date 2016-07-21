@@ -32,7 +32,9 @@ public:
     uint32_t addSound(Sampler & sampler);
     
     int32_t playSound(uint32_t sound, glm::vec3 const & position);
-    
+    // TODO this should be done in two phases: allocate and then play
+    // also, add a playAndDie option, to manage desallocation when sounds die
+    // Maybe add a callback when sound ends?
     
     // TODO play streamed sound (a.k.a. music) using circular buffer
     

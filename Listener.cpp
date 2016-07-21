@@ -91,7 +91,8 @@ uint32_t Listener::addSound(Sampler & sampler) {
     uint32_t length = sampler.getBytes();
     char * bytes = new char[length];
     sampler.rewind();
-    sampler.read(bytes, sampler.getSize());
+    uint32_t count = sampler.read(bytes, sampler.getSize());
+    std::cout << count <<'/'<<sampler.getSize()<< std::endl;
     
     // Store data
     alBufferData(handle, sampler.getFormat(), bytes, length, sampler.getFrequency());

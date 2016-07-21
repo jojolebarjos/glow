@@ -45,7 +45,7 @@ bool Scene::initialize() {
     // Prepare listener
     listener.initialize();
     Sampler sampler;
-    sampler.load("Test.wav");
+    sampler.load("Test.wav", Sampler::LEFT);
     listener.addSound(sampler);
     
     return true;
