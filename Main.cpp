@@ -52,27 +52,21 @@ int main(int argc, char** argv) {
 #endif
     
     // Print OpenGL infos
-    std::cout << "OpenGL: " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl;
     
     // Game loop
     {
-        Scene scene(window);
-        scene.initialize();
+        // TODO choose the desired game from config file/arguments
+        Scene
+        //Smoke
+        game(window);
+        game.initialize();
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
-            scene.update();
+            game.update();
             glfwSwapBuffers(window);
         }
-        /*
-        Smoke smoke(window);
-        smoke.initialize();
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            smoke.update();
-            glfwSwapBuffers(window);
-        }
-        */
     }
     
     // Clean up

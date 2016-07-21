@@ -42,6 +42,9 @@ bool Scene::initialize() {
     plane->mesh.mesh = 1;
     plane->mesh.color = 0;
     
+    // Prepare listener
+    listener.initialize();
+    
     return true;
 }
 
@@ -65,7 +68,10 @@ void Scene::update() {
     world->stepSimulation(delta, 10);
     
     // Update camera
-    glm::mat4 view = glm::lookAt(glm::vec3(glm::cos(time / 3) * 5.0f, glm::sin(time / 3) * 5.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::vec3 position(glm::cos(time / 3) * 5.0f, glm::sin(time / 3) * 5.0f, 3.0f);
+    glm::vec3 target(0.0f, 0.0f, 0.0f);
+    glm::vec3 up(0.0f, 0.0f, 1.0f);
+    glm::mat4 view = glm::lookAt(position, target, up);
     renderer.setView(view);
     
     // Define render objects
@@ -79,6 +85,11 @@ void Scene::update() {
     
     // Draw everything
     renderer.render();
+    
+    // Update audio
+    listener.setPosition(position);
+    listener.setOrientation(target - position, up);
+    listener.update();
     
 }
 

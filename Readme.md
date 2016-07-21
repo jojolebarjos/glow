@@ -16,3 +16,4 @@
 * [GLFW 3](http://www.glfw.org/)
 * [libjpeg](http://libjpeg.sourceforge.net/)
 * [Bullet](https://github.com/bulletphysics/bullet3)
+* [OpenAL Soft](http://kcat.strangesoft.net/openal.html)

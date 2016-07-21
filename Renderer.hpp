@@ -13,6 +13,8 @@
 class Renderer {
 public:
     
+    // TODO hide these structs?
+    
     struct LightInfo {
         glm::vec3 position;
         float radius;
@@ -60,6 +62,7 @@ private:
     int width;
     int height;
 
+    // TODO maybe this mapping should not be done here?
     std::map<std::string, GLuint> meshNames;
     std::map<std::string, GLuint> imageNames;
     

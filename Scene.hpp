@@ -4,6 +4,7 @@
 
 #include "Common.hpp"
 #include "Renderer.hpp"
+#include "Listener.hpp"
 
 class Scene {
 public:
@@ -26,6 +27,10 @@ private:
     float time;
     
     Renderer renderer;
+    
+    Listener listener;
+    
+    // TODO do we need to encapsulate physics in dedicated classes?
     
     btDynamicsWorld * world;
     btConstraintSolver * solver;
