@@ -1,6 +1,80 @@
 
 #include "Listener.hpp"
 
+void Listener::Sound::setPosition(glm::vec3 const & position) {
+    this->position = position;
+    if (source)
+        alSource3f(source->handle, AL_POSITION, position.x, position.y, position.z);
+}
+
+glm::vec3 Listener::Sound::getPosition() const {
+    return position;
+}
+
+void Listener::Sound::play() {
+    
+    // Make sure the sound is stopped
+    stop();
+    
+    // Find available source
+    for (Source * s : listener->sources)
+        if (!s->sound) {
+            source = s;
+            break;
+        }
+    
+    // If no source was found, ignore call
+    if (!source) {
+        std::cout << "warning: source limit reached" << std::endl;
+        return;
+    }
+    
+    // Define properties
+    alSourcei(source->handle, AL_BUFFER, listener->buffers[buffer].handle);
+    alSource3f(source->handle, AL_POSITION, position.x, position.y, position.z);
+    // alSourcei(handle, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
+    // alSource3f(handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+    // alSource3f(handle, AL_DIRECTION, direction.x, direction.y, direction.z);
+    // alSourcef(handle, AL_PITCH, 1); in 0.5 .. 2.0
+    // TODO attentuation AL_CONE_INNER_ANGLE, AL_CONE_OUTER_ANGLE, AL_REFERENCE_DISTANCE, AL_ROLLOFF_FACTOR, AL_MAX_DISTANCE
+    // TODO gain AL_GAIN, AL_MIN_GAIN, AL_MAX_GAIN, AL_CONE_OUTER_GAIN
+    // TODO AL_LOOPING
+    // TODO AL_SEC_OFFSET, AL_SAMPLE_OFFSET, AL_BYTE_OFFSET
+    
+    // Start playback
+    source->sound = this;
+    alSourcePlay(source->handle);
+}
+
+void Listener::Sound::stop() {
+    
+    // Stop and unregister source
+    if (source) {
+        alSourceStop(source->handle);
+        source->sound = nullptr;
+        source = nullptr;
+    }
+    
+    // If this sound was released, destroy it
+    if (released) {
+        listener->sounds.erase(iterator);
+        delete this;
+        std::cout << "sound destroyed" << std::endl;
+    }
+}
+
+bool Listener::Sound::isPlaying() const {
+    return source;
+}
+
+void Listener::Sound::release() {
+    released = true;
+    if (!source)
+        stop();
+}
+
+Listener::Sound::Sound(Listener * listener) : listener(listener), released(false), source(nullptr) {}
+
 Listener::Listener() : device(nullptr), context(nullptr) {}
 
 Listener::~Listener() {
@@ -8,12 +82,15 @@ Listener::~Listener() {
         if (context) {
             
             // Release resources
-            for (Source & source : sources) {
-                // TODO should we stop the sources?
-                alDeleteSources(1, &source.handle);
+            for (Source * source : sources) {
+                alSourceStop(source->handle);
+                alDeleteSources(1, &source->handle);
+                delete source;
             }
-            for (Sound & sound : sounds)
-                alDeleteBuffers(1, &sound.handle);
+            for (Buffer & buffer : buffers)
+                alDeleteBuffers(1, &buffer.handle);
+            for (Sound * sound : sounds)
+                delete sound;
             
             // Delete context
             alcMakeContextCurrent(NULL);
@@ -49,18 +126,27 @@ bool Listener::initialize() {
     //std::cout << "OpenAL context: " << alcGetString(device, ALC_DEVICE_SPECIFIER) << std::endl;
     
     // Allocate sources
-    uint32_t max_sources = 1024; // TODO define from arguments
+    uint32_t max_sources = 256; // TODO define from arguments
     for (uint32_t i = 0; i < max_sources; ++i) {
         ALuint handle;
         alGenSources(1, &handle);
         assert(handle);
-        sources.push_back({handle});
+        sources.push_back(new Source({handle, nullptr}));
     }
     return true;
 }
 
 void Listener::update() {
-    // TODO manage virtual source priorities
+    
+    // Check if sources have ended
+    ALint state;
+    for (Source * source : sources)
+        if (source->sound) {
+            alGetSourcei(source->handle, AL_SOURCE_STATE, &state);
+            if (state != AL_PLAYING)
+                source->sound->stop();
+        }
+    
     // TODO update streamed sound
 }
 
@@ -79,8 +165,7 @@ void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {
     alListenerfv(AL_ORIENTATION, orientation);
 }
 
-uint32_t Listener::addSound(Sampler & sampler) {
-    // TODO on error, return -1?
+uint32_t Listener::addSoundBuffer(Sampler & sampler) {
     
     // Create buffer
     ALuint handle;
@@ -98,46 +183,15 @@ uint32_t Listener::addSound(Sampler & sampler) {
     alBufferData(handle, sampler.getFormat(), bytes, length, sampler.getFrequency());
     
     // Save sound
-    uint32_t index = sounds.size();
-    sounds.push_back({handle});
+    uint32_t index = buffers.size();
+    buffers.push_back({handle});
     return index;
 }
 
-int32_t Listener::playSound(uint32_t sound, glm::vec3 const & position) {
-    
-    // Find available source
-    // TODO improve this strategy:
-    // - a source might become available afterwards, so do not discard it if none currently available
-    // - use a priority system to sort virtual sources
-    int32_t index = -1;
-    for (uint32_t i = 0; i < sources.size(); ++i) {
-        ALint state;
-        alGetSourcei(sources[i].handle, AL_SOURCE_STATE, &state);
-        if (state != AL_PLAYING) {
-            index = i;
-            break;
-        }
-    }
-    if (index < 0)
-        return -1;
-    
-    // Setup source parameters
-    // alSourcei(handle, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
-    // alSource3f(handle, AL_POSITION, position.x, position.y, position.z);
-    // alSource3f(handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-    // alSource3f(handle, AL_DIRECTION, direction.x, direction.y, direction.z);
-    // alSourcef(handle, AL_PITCH, 1); in 0.5 .. 2.0
-    // alSourcei(handle, AL_BUFFER, buffhandle);
-    // TODO attentuation AL_CONE_INNER_ANGLE, AL_CONE_OUTER_ANGLE, AL_REFERENCE_DISTANCE, AL_ROLLOFF_FACTOR, AL_MAX_DISTANCE
-    // TODO gain AL_GAIN, AL_MIN_GAIN, AL_MAX_GAIN, AL_CONE_OUTER_GAIN
-    // TODO AL_LOOPING
-    ALuint handle = sources[index].handle;
-    alSource3f(handle, AL_POSITION, position.x, position.y, position.z);
-    alSourcei(handle, AL_BUFFER, sounds[sound].handle);
-    
-    // Start playback
-    alSourcePlay(handle);
-    // TODO later this id will be used to modify the sound afterward (change position, stop...)
-    // TODO AL_SEC_OFFSET, AL_SAMPLE_OFFSET, AL_BYTE_OFFSET
-    return index;
+Listener::Sound * Listener::addSound(uint32_t buffer) {
+    Sound * sound = new Sound(this);
+    sounds.push_front(sound);
+    sound->iterator = sounds.begin();
+    sound->buffer = buffer;
+    return sound;
 }

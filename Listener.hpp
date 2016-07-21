@@ -6,9 +6,53 @@
 #include "Sampler.hpp"
 
 class Listener {
+    struct Source;
 public:
     
     // See https://www.openal.org/documentation/OpenAL_Programmers_Guide.pdf
+    
+    class Sound {
+        friend class Listener;
+    public:
+       
+        Sound(Sound const &) = delete;
+        Sound & operator=(Sound const &) = delete;
+        
+        void setPosition(glm::vec3 const & position);
+        glm::vec3 getPosition() const;
+        
+        // TODO relative, velocity, direction, pitch, attenuation, gain, looping
+        
+        void play();
+        // TODO allow pause/resume?
+        void stop();
+        
+        bool isPlaying() const;
+        
+        // Note: the source is released as soon as the sound ends
+        void release();
+        
+        // TODO effects using EFX
+        // http://kcat.strangesoft.net/misc-downloads/Effects%20Extension%20Guide.pdf
+        // https://github.com/kcat/openal-soft/blob/master/include/AL/efx.h
+        // ideas:
+        //  - distant sound http://filmsound.org/QA/distantsounds.htm
+        
+    private:
+        
+        Sound(Listener * listener);
+        ~Sound() = default;
+        
+        Listener * listener;
+        std::list<Sound *>::iterator iterator;
+        bool released;
+        
+        Source * source;
+        
+        uint32_t buffer;
+        glm::vec3 position;
+        
+    };
     
     Listener();
     ~Listener();
@@ -29,42 +73,29 @@ public:
     
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
     
-    uint32_t addSound(Sampler & sampler);
-    
-    int32_t playSound(uint32_t sound, glm::vec3 const & position);
-    // TODO this should be done in two phases: allocate and then play
-    // also, add a playAndDie option, to manage desallocation when sounds die
-    // Maybe add a callback when sound ends?
+    uint32_t addSoundBuffer(Sampler & sampler);
+    Sound * addSound(uint32_t buffer);
     
     // TODO play streamed sound (a.k.a. music) using circular buffer
-    
-    // TODO effects using EFX?
-    // http://kcat.strangesoft.net/misc-downloads/Effects%20Extension%20Guide.pdf
-    // https://github.com/kcat/openal-soft/blob/master/include/AL/efx.h
-    // ideas:
-    //  - distant sound http://filmsound.org/QA/distantsounds.htm
     
 private:
 
     ALCdevice * device;
     ALCcontext * context;
-    
-    // TODO cache data (e.g. listener infos)?)
 
-    struct Sound {
+    struct Buffer {
         ALuint handle;
-        // TODO what is needed?
+        // TODO store infos?
     };
-    std::vector<Sound> sounds;
+    std::vector<Buffer> buffers;
     
     struct Source {
         ALuint handle;
-        // TODO what is needed?
+        Sound * sound;
     };
-    std::vector<Source> sources;
+    std::vector<Source *> sources;
     
-    // TODO keep a list of virtual sources
-    // TODO can be either managed (i.e. they disappear when they finish) or unmanaged (i.e. the user need to do something) sources
+    std::list<Sound *> sounds;
     
 };
 

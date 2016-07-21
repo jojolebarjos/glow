@@ -46,7 +46,7 @@ bool Scene::initialize() {
     listener.initialize();
     Sampler sampler;
     sampler.load("Test.wav", Sampler::LEFT);
-    listener.addSound(sampler);
+    listener.addSoundBuffer(sampler);
     
     return true;
 }
@@ -62,7 +62,10 @@ void Scene::update() {
     static bool just = false;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
         addCube({5, 0, 5});
-        listener.playSound(0, {5, 0, 0});
+        Listener::Sound * sound = listener.addSound(0);
+        sound->setPosition({5, 0, 0});
+        sound->play();
+        sound->release();
         just = true;
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)

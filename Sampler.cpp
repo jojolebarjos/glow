@@ -240,6 +240,7 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
                     }
                     break;
                 default:
+                    // TODO this mixer could be improved :/
                     if (format == AL_FORMAT_MONO8) {
                         for (uint32_t i = 0; i < count; ++i) {
                             float left = ((int8_t *)tmp)[2 * i] / 127.0f;
