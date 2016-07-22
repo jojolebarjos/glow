@@ -1,38 +1,38 @@
 
 #include "Listener.hpp"
 
-void Listener::Sound::setPosition(glm::vec3 const & position) {
+void Listener::Source::setPosition(glm::vec3 const & position) {
     this->position = position;
-    if (source)
-        alSource3f(source->handle, AL_POSITION, position.x, position.y, position.z);
+    if (binding)
+        alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
 }
 
-glm::vec3 Listener::Sound::getPosition() const {
+glm::vec3 Listener::Source::getPosition() const {
     return position;
 }
 
-void Listener::Sound::play() {
+void Listener::Source::play() {
     
     // Make sure the sound is stopped
     stop();
     
     // Find available source
-    for (Source * s : listener->sources)
-        if (!s->sound) {
-            source = s;
+    for (Binding * b : listener->bindings)
+        if (!b->source) {
+            binding = b;
             break;
         }
     
     // If no source was found, ignore call
-    if (!source) {
+    if (!binding) {
         // TODO discard another sound with smaller priority
         std::cout << "warning: source limit reached" << std::endl;
         return;
     }
     
     // Define properties
-    alSourcei(source->handle, AL_BUFFER, listener->buffers[buffer].handle);
-    alSource3f(source->handle, AL_POSITION, position.x, position.y, position.z);
+    alSourcei(binding->handle, AL_BUFFER, listener->sounds[sound].handle);
+    alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
     // alSourcei(handle, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
     // alSource3f(handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
     // alSource3f(handle, AL_DIRECTION, direction.x, direction.y, direction.z);
@@ -43,37 +43,37 @@ void Listener::Sound::play() {
     // TODO AL_SEC_OFFSET, AL_SAMPLE_OFFSET, AL_BYTE_OFFSET
     
     // Start playback
-    source->sound = this;
-    alSourcePlay(source->handle);
+    binding->source = this;
+    alSourcePlay(binding->handle);
 }
 
-void Listener::Sound::stop() {
+void Listener::Source::stop() {
     
     // Stop and unregister source
-    if (source) {
-        alSourceStop(source->handle);
-        source->sound = nullptr;
-        source = nullptr;
+    if (binding) {
+        alSourceStop(binding->handle);
+        binding->source = nullptr;
+        binding = nullptr;
     }
     
     // If this sound was released, destroy it
     if (released) {
-        listener->sounds.erase(iterator);
+        listener->sources.erase(iterator);
         delete this;
     }
 }
 
-bool Listener::Sound::isPlaying() const {
-    return source;
+bool Listener::Source::isPlaying() const {
+    return binding;
 }
 
-void Listener::Sound::release() {
+void Listener::Source::release() {
     released = true;
-    if (!source)
+    if (!binding)
         stop();
 }
 
-Listener::Sound::Sound(Listener * listener) : listener(listener), released(false), source(nullptr) {}
+Listener::Source::Source(Listener * listener) : listener(listener), released(false), binding(nullptr) {}
 
 Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
 
@@ -82,15 +82,15 @@ Listener::~Listener() {
         if (context) {
             
             // Release resources
-            for (Source * source : sources) {
-                alSourceStop(source->handle);
-                alDeleteSources(1, &source->handle);
-                delete source;
+            for (Binding * binding : bindings) {
+                alSourceStop(binding->handle);
+                alDeleteSources(1, &binding->handle);
+                delete binding;
             }
-            for (Buffer & buffer : buffers)
-                alDeleteBuffers(1, &buffer.handle);
-            for (Sound * sound : sounds)
-                delete sound;
+            for (Sound & sound : sounds)
+                alDeleteBuffers(1, &sound.handle);
+            for (Source * source : sources)
+                delete source;
             
             // Delete context
             alcMakeContextCurrent(NULL);
@@ -148,12 +148,12 @@ bool Listener::initialize() {
     std::cout << "OpenAL renderer: " << alGetString(AL_RENDERER) << std::endl;
     
     // Allocate sources
-    uint32_t max_sources = 256; // TODO define from arguments
-    for (uint32_t i = 0; i < max_sources; ++i) {
+    uint32_t max_bindings = 256; // TODO define from arguments
+    for (uint32_t i = 0; i < max_bindings; ++i) {
         ALuint handle;
         alGenSources(1, &handle);
         assert(handle);
-        sources.push_back(new Source({handle, nullptr}));
+        bindings.push_back(new Binding({handle, nullptr}));
     }
     return true;
 }
@@ -165,11 +165,11 @@ void Listener::update() {
     // Check if sources have ended
     // TODO reduce CPU overload by doing this check at a lower frequency
     ALint state;
-    for (Source * source : sources)
-        if (source->sound) {
-            alGetSourcei(source->handle, AL_SOURCE_STATE, &state);
+    for (Binding * binding : bindings)
+        if (binding->source) {
+            alGetSourcei(binding->handle, AL_SOURCE_STATE, &state);
             if (state != AL_PLAYING)
-                source->sound->stop();
+                binding->source->stop();
         }
     
     // TODO update streamed sound
@@ -207,15 +207,15 @@ uint32_t Listener::addSoundBuffer(Sampler & sampler) {
     alBufferData(handle, sampler.getFormat(), bytes, length, sampler.getFrequency());
     
     // Save sound
-    uint32_t index = buffers.size();
-    buffers.push_back({handle});
+    uint32_t index = sounds.size();
+    sounds.push_back({handle});
     return index;
 }
 
-Listener::Sound * Listener::addSound(uint32_t buffer) {
-    Sound * sound = new Sound(this);
-    sounds.push_front(sound);
-    sound->iterator = sounds.begin();
-    sound->buffer = buffer;
-    return sound;
+Listener::Source * Listener::addSource(uint32_t sound) {
+    Source * source = new Source(this);
+    sources.push_front(source);
+    source->iterator = sources.begin();
+    source->sound = sound;
+    return source;
 }

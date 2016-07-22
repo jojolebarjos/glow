@@ -6,7 +6,7 @@
 #include "Sampler.hpp"
 
 class Listener {
-    struct Source;
+    struct Binding;
 public:
     
     //
@@ -51,12 +51,12 @@ public:
     //     * Reverberation parameters adjustment: 15Hz
     //
     
-    class Sound {
+    class Source {
         friend class Listener;
     public:
        
-        Sound(Sound const &) = delete;
-        Sound & operator=(Sound const &) = delete;
+        Source(Source const &) = delete;
+        Source & operator=(Source const &) = delete;
         
         void setPosition(glm::vec3 const & position);
         glm::vec3 getPosition() const;
@@ -74,16 +74,16 @@ public:
         
     private:
         
-        Sound(Listener * listener);
-        ~Sound() = default;
+        Source(Listener * listener);
+        ~Source() = default;
         
         Listener * listener;
-        std::list<Sound *>::iterator iterator;
+        std::list<Source *>::iterator iterator;
         bool released;
         
-        Source * source;
+        Binding * binding;
         
-        uint32_t buffer;
+        uint32_t sound;
         glm::vec3 position;
         
     };
@@ -111,7 +111,7 @@ public:
     uint32_t addSoundBuffer(Sampler & sampler);
     // TODO add sound stream (i.e. can be used transparently by sounds, no special Music class)
     
-    Sound * addSound(uint32_t buffer);
+    Source * addSource(uint32_t sound);
     
 private:
 
@@ -119,19 +119,19 @@ private:
     ALCcontext * context;
     bool efx;
 
-    struct Buffer {
+    struct Sound {
         ALuint handle;
         // TODO store infos?
     };
-    std::vector<Buffer> buffers;
+    std::vector<Sound> sounds;
     
-    struct Source {
+    struct Binding {
         ALuint handle;
-        Sound * sound;
+        Source * source;
     };
-    std::vector<Source *> sources;
+    std::vector<Binding *> bindings;
     
-    std::list<Sound *> sounds;
+    std::list<Source *> sources;
     
 };
 
