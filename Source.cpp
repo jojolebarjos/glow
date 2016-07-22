@@ -31,7 +31,7 @@ void Source::play() {
     }
     
     // Define properties
-    alSourcei(binding->handle, AL_BUFFER, listener->sounds[sound].handle);
+    alSourcei(binding->handle, AL_BUFFER, sound->handle);
     alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
     // alSourcei(handle, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
     // alSource3f(handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);

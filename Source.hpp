@@ -4,6 +4,7 @@
 
 #include "Common.hpp"
 #include "Listener.hpp"
+#include "Sound.hpp"
 
 class Source {
     friend class Listener;
@@ -12,6 +13,8 @@ public:
     Source(Source const &) = delete;
     Source & operator=(Source const &) = delete;
 
+    // TODO add setSound here instead of in Listener addSource
+    
     void setPosition(glm::vec3 const & position);
     glm::vec3 getPosition() const;
 
@@ -37,10 +40,9 @@ private:
 
     Listener::Binding * binding;
 
-    uint32_t sound;
+    Sound * sound;
     glm::vec3 position;
 
 };
 
-#endif /* SOURCE_HPP */
-
+#endif

@@ -30,6 +30,7 @@ private:
     Renderer renderer;
     
     Listener listener;
+    Sound * sound;
     
     // TODO do we need to encapsulate physics in dedicated classes?
     

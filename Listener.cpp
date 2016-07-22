@@ -1,6 +1,7 @@
 
 #include "Listener.hpp"
 #include "Source.hpp"
+#include "Sound.hpp"
 
 Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
 
@@ -14,13 +15,13 @@ Listener::~Listener() {
                 alDeleteSources(1, &binding->handle);
                 delete binding;
             }
-            for (Sound & sound : sounds)
-                alDeleteBuffers(1, &sound.handle);
+            for (Sound * sound : sounds)
+                delete sound;
             for (Source * source : sources)
                 delete source;
             
             // Delete context
-            alcMakeContextCurrent(NULL);
+            alcMakeContextCurrent(nullptr);
             alcDestroyContext(context);
         }
         alcCloseDevice(device);
@@ -36,7 +37,7 @@ bool Listener::initialize() {
     }
     
     // Open device
-    device = alcOpenDevice(NULL);
+    device = alcOpenDevice(nullptr);
     if (!device) {
         std::cout << "Failed to create OpenAL device" << std::endl;
         return false;
@@ -117,29 +118,18 @@ void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {
     alListenerfv(AL_ORIENTATION, orientation);
 }
 
-uint32_t Listener::addSoundBuffer(Sampler & sampler) {
-    
-    // Create buffer
-    ALuint handle;
-    alGenBuffers(1, &handle);
-    assert(handle);
-    
-    // Read bytes
-    uint32_t length = sampler.getBytes();
-    char * bytes = new char[length];
-    sampler.rewind();
-    sampler.read(bytes, sampler.getSize());
-    
-    // Store data
-    alBufferData(handle, sampler.getFormat(), bytes, length, sampler.getFrequency());
-    
-    // Save sound
-    uint32_t index = sounds.size();
-    sounds.push_back({handle});
-    return index;
+Sound * Listener::addSoundBuffer(Sampler & sampler) {
+    Sound * sound = new Sound(&sampler);
+    sounds.push_front(sound);;
+    return sound;
 }
 
-Source * Listener::addSource(uint32_t sound) {
+Sound * Listener::addSoundStream(Sampler * sampler) {
+    // TODO sound stream
+    return nullptr;
+}
+
+Source * Listener::addSource(Sound * sound) {
     Source * source = new Source(this);
     sources.push_front(source);
     source->iterator = sources.begin();

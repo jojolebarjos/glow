@@ -6,9 +6,11 @@
 #include "Sampler.hpp"
 
 class Source;
+class Sound;
 
 class Listener {
     friend class Source;
+    friend class Sound;
 public:
     
     //
@@ -72,23 +74,17 @@ public:
     
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
     
-    // TODO make a public class for this Buffer
-    uint32_t addSoundBuffer(Sampler & sampler);
-    // TODO add sound stream (i.e. can be used transparently by sounds, no special Music class)
+    // Note: a stream can only used by one source at a time
+    Sound * addSoundBuffer(Sampler & sampler);
+    Sound * addSoundStream(Sampler * sampler);
     
-    Source * addSource(uint32_t sound);
+    Source * addSource(Sound * sound);
     
 private:
 
     ALCdevice * device;
     ALCcontext * context;
     bool efx;
-
-    struct Sound {
-        ALuint handle;
-        // TODO store infos?
-    };
-    std::vector<Sound> sounds;
     
     struct Binding {
         ALuint handle;
@@ -96,6 +92,7 @@ private:
     };
     std::vector<Binding *> bindings;
     
+    std::list<Sound *> sounds;
     std::list<Source *> sources;
     
 };
