@@ -25,6 +25,7 @@ void Listener::Sound::play() {
     
     // If no source was found, ignore call
     if (!source) {
+        // TODO discard another sound with smaller priority
         std::cout << "warning: source limit reached" << std::endl;
         return;
     }
@@ -59,7 +60,6 @@ void Listener::Sound::stop() {
     if (released) {
         listener->sounds.erase(iterator);
         delete this;
-        std::cout << "sound destroyed" << std::endl;
     }
 }
 
@@ -75,7 +75,7 @@ void Listener::Sound::release() {
 
 Listener::Sound::Sound(Listener * listener) : listener(listener), released(false), source(nullptr) {}
 
-Listener::Listener() : device(nullptr), context(nullptr) {}
+Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
 
 Listener::~Listener() {
     if (device) {
@@ -101,8 +101,12 @@ Listener::~Listener() {
 }
 
 bool Listener::initialize() {
-    // TODO only allow one context/listener
-    // TODO proper error/resource management
+    
+    // Only one context is allowed
+    if (alcGetCurrentContext()) {
+        std::cout << "Only one OpenAL context can be active at a time!" << std::endl;
+        return false;
+    }
     
     // Open device
     device = alcOpenDevice(NULL);
@@ -111,19 +115,37 @@ bool Listener::initialize() {
         return false;
     }
     
+    // Check EFX
+    efx = alcIsExtensionPresent(device, ALC_EXT_EFX_NAME) == AL_TRUE;
+    if (efx) {
+        ALCint major, minor;
+        alcGetIntegerv(device, ALC_EFX_MAJOR_VERSION, 1, &major);
+        alcGetIntegerv(device, ALC_EFX_MINOR_VERSION, 1, &minor);
+        std::cout << "OpenAL EFX: " << major << '.' << minor << std::endl;
+    } else
+        std::cout << "OpenAL EFX: <none>" << std::endl;
+    
     // Create context
-    context = alcCreateContext(device, NULL);
+    ALint attribs[4] = {0}; 
+    if (efx) {
+        attribs[0] = ALC_MAX_AUXILIARY_SENDS;
+        attribs[1] = 4;
+    }
+    context = alcCreateContext(device, attribs);
     if (!context || !alcMakeContextCurrent(context)) {
         std::cout << "Failed to create OpenAL context" << std::endl;
+        if (context) {
+            alcDestroyContext(context);
+            context = nullptr;
+        }
+        alcCloseDevice(device);
+        device = nullptr;
         return false;
     }
     
-    // Print infos
+    // Print version
     std::cout << "OpenAL version: " << alGetString(AL_VERSION) << std::endl;
-    //std::cout << "OpenAL vendor: " << alGetString(AL_VENDOR) << std::endl;
     std::cout << "OpenAL renderer: " << alGetString(AL_RENDERER) << std::endl;
-    //std::cout << "OpenAL extensions: " << alGetString(AL_EXTENSIONS) << std::endl;
-    //std::cout << "OpenAL context: " << alcGetString(device, ALC_DEVICE_SPECIFIER) << std::endl;
     
     // Allocate sources
     uint32_t max_sources = 256; // TODO define from arguments
@@ -138,7 +160,10 @@ bool Listener::initialize() {
 
 void Listener::update() {
     
+    // TODO defer some parameter updates? i.e. position and reverb parameters
+    
     // Check if sources have ended
+    // TODO reduce CPU overload by doing this check at a lower frequency
     ALint state;
     for (Source * source : sources)
         if (source->sound) {

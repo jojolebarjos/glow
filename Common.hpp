@@ -15,6 +15,7 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/efx.h>
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
