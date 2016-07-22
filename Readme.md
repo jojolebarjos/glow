@@ -17,3 +17,4 @@
 * [libjpeg](http://libjpeg.sourceforge.net/)
 * [Bullet](https://github.com/bulletphysics/bullet3)
 * [OpenAL Soft](http://kcat.strangesoft.net/openal.html)
+* [libogg and libvorbis](https://xiph.org/downloads/)

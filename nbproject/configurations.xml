@@ -96,6 +96,9 @@
             <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
             <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
             <linkerOptionItem>-lLinearMath.dll</linkerOptionItem>
+            <linkerOptionItem>-lvorbisfile</linkerOptionItem>
+            <linkerOptionItem>-lvorbis</linkerOptionItem>
+            <linkerOptionItem>-logg</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
@@ -222,6 +225,9 @@
             <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
             <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
             <linkerOptionItem>-lLinearMath.dll</linkerOptionItem>
+            <linkerOptionItem>-lvorbisfile</linkerOptionItem>
+            <linkerOptionItem>-lvorbis</linkerOptionItem>
+            <linkerOptionItem>-logg</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

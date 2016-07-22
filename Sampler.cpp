@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <cstring>
 
+#define OV_EXCLUDE_STATIC_CALLBACKS
+#include <vorbis/vorbisfile.h>
+
 Sampler::Sampler() : reader(nullptr) {}
 
 Sampler::~Sampler() {
@@ -171,7 +174,71 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
 }
 
 Sampler::Reader * Sampler::createOgg(std::string const & path) {
-    // TODO use ogg vorbis
+    // https://xiph.org/vorbis/doc/vorbisfile/example.html
+    // http://www.gamedev.net/page/resources/_/technical/game-programming/introduction-to-ogg-vorbis-r2031
+    // https://xiph.org/vorbis/doc/vorbisfile/reference.html
+    
+    struct OggReader : Reader {
+        FILE * file;
+        OggVorbis_File vorbis;
+        
+        OggReader(std::string const & path) {
+            
+            // Open file
+            file = fopen(path.c_str(), "rb");
+            if (!file)
+                return;
+            
+            // Create Vorbis object
+            if (ov_open(file, &vorbis, NULL, 0) < 0) {
+                ov_clear(&vorbis);
+                fclose(file);
+                file = nullptr;
+                return;
+            }
+            
+            // Read infos
+            vorbis_info * info = ov_info(&vorbis, -1);
+            format = info->channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+            channels = info->channels;
+            bits = 16;
+            size = ov_pcm_total(&vorbis, -1);
+            frequency = info->rate;
+            offset = 0;
+        }
+        
+        ~OggReader() {
+            if (file) {
+                ov_clear(&vorbis);
+                fclose(file);
+            }
+        }
+        
+        void rewind() {
+            ov_raw_seek(&vorbis, 0);
+            offset = 0;
+        }
+        
+        uint32_t read(void * buffer, uint32_t samples) {
+            int sample_size = channels * 2;
+            char * pointer = (char *)buffer;
+            int size = samples * sample_size;
+            int bitStream;
+            while (true) {
+                int s = ov_read(&vorbis, pointer, size, 0, 2, 1, &bitStream);
+                size -= s;
+                pointer += s;
+                if (s == 0 || size <= 0)
+                    break;
+            }
+            return (pointer - (char *)buffer) / sample_size;
+        }
+        
+    };
+    OggReader * reader = new OggReader(path);
+    if (reader->file)
+        return reader;
+    delete reader;
     return nullptr;
 }
 
