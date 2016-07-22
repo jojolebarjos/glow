@@ -41,7 +41,6 @@ public:
 private:
 
     struct Reader {
-        ALenum format;
         uint32_t channels;
         uint32_t bits;
         uint32_t frequency;

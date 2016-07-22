@@ -32,7 +32,11 @@ bool Sampler::loadOgg(std::string const & path, Conversion conversion) {
 }
 
 ALenum Sampler::getFormat() const {
-    return reader ? reader->format : AL_NONE;
+    if (!reader)
+        return AL_NONE;
+    if (reader->channels == 2)
+        return reader->bits == 16 ? AL_FORMAT_STEREO16 : AL_FORMAT_STEREO8;
+    return reader->bits == 16 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
 }
 
 uint32_t Sampler::getChannels() const {
@@ -120,10 +124,6 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
                 file = nullptr;
                 return;
             }
-            if (channels == 2)
-                format = bits == 16 ? AL_FORMAT_STEREO16 : AL_FORMAT_STEREO8;
-            else
-                format = bits == 16 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
             frequency = *(uint32_t *)(header + 24);
             
             // Search data chunk
@@ -199,7 +199,6 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
             
             // Read infos
             vorbis_info * info = ov_info(&vorbis, -1);
-            format = info->channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
             channels = info->channels;
             bits = 16;
             size = ov_pcm_total(&vorbis, -1);
@@ -253,7 +252,6 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
         char tmp[RESAMPLER_SIZE * 4];
         
         Resampler(Reader * reader, Conversion conversion) : reader(reader), conversion(conversion) {
-            format = reader->format == AL_FORMAT_STEREO16 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
             channels = 1;
             bits = reader->bits;
             frequency = reader->frequency;
@@ -289,7 +287,7 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
             // Convert to mono
             switch (conversion) {
                 case LEFT:
-                    if (format == AL_FORMAT_MONO8) {
+                    if (bits == 8) {
                         for (uint32_t i = 0; i < count; ++i)
                             ((int8_t *)buffer)[i] = ((int8_t *)tmp)[2 * i];
                     } else {
@@ -298,7 +296,7 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
                     }
                     break;
                 case RIGHT:
-                    if (format == AL_FORMAT_MONO8) {
+                    if (bits == 8) {
                         for (uint32_t i = 0; i < count; ++i)
                             ((int8_t *)buffer)[i] = ((int8_t *)tmp)[2 * i + 1];
                     } else {
@@ -308,7 +306,7 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
                     break;
                 default:
                     // TODO this mixer could be improved :/
-                    if (format == AL_FORMAT_MONO8) {
+                    if (bits == 8) {
                         for (uint32_t i = 0; i < count; ++i) {
                             float left = ((int8_t *)tmp)[2 * i] / 127.0f;
                             float right = ((int8_t *)tmp)[2 * i + 1] / 127.0f;
