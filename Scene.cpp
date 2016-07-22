@@ -62,7 +62,7 @@ void Scene::update() {
     static bool just = false;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
         addCube({5, 0, 5});
-        Listener::Source * source = listener.addSource(0);
+        Source * source = listener.addSource(0);
         source->setPosition({5, 0, 0});
         source->play();
         source->release();

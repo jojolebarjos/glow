@@ -5,8 +5,10 @@
 #include "Common.hpp"
 #include "Sampler.hpp"
 
+class Source;
+
 class Listener {
-    struct Binding;
+    friend class Source;
 public:
     
     //
@@ -50,43 +52,6 @@ public:
     //     * Reverb/reflection panning vectors: 30Hz
     //     * Reverberation parameters adjustment: 15Hz
     //
-    
-    class Source {
-        friend class Listener;
-    public:
-       
-        Source(Source const &) = delete;
-        Source & operator=(Source const &) = delete;
-        
-        void setPosition(glm::vec3 const & position);
-        glm::vec3 getPosition() const;
-        
-        // TODO relative, velocity, direction, pitch, attenuation, gain, looping
-        
-        void play();
-        // TODO allow pause/resume?
-        void stop();
-        
-        bool isPlaying() const;
-        
-        // Note: the source is released as soon as the sound ends
-        void release();
-        
-    private:
-        
-        Source(Listener * listener);
-        ~Source() = default;
-        
-        Listener * listener;
-        std::list<Source *>::iterator iterator;
-        bool released;
-        
-        Binding * binding;
-        
-        uint32_t sound;
-        glm::vec3 position;
-        
-    };
     
     Listener();
     ~Listener();

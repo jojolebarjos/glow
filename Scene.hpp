@@ -5,6 +5,7 @@
 #include "Common.hpp"
 #include "Renderer.hpp"
 #include "Listener.hpp"
+#include "Source.hpp"
 
 class Scene {
 public:
