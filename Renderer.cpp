@@ -111,8 +111,8 @@ void Renderer::pack() {
     for (GLuint index = 0; index < imageDatas.size(); ++index) {
         textures[index] = new Texture();
         textures[index]->createColor(imageDatas[index], true);
+        textures[index]->setAnisotropy(true);
     }
-    
 }
 
 void Renderer::addLight(LightInfo const & light) {

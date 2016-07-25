@@ -22,8 +22,10 @@ void Texture::createColor(Image const & image, bool mipmapped) {
     depthStencil = false;
     multisampled = false;
     glBindTexture(GL_TEXTURE_2D, handle);
+    // TODO use glTexStorage instead https://www.opengl.org/wiki/Common_Mistakes#Creating_a_complete_texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPointer());
     if (mipmapped) {
+        glEnable(GL_TEXTURE_2D);
         glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -48,7 +50,6 @@ void Texture::createColor(int width, int height, bool floating, bool multisample
         else
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 }
 
@@ -107,6 +108,16 @@ void Texture::setInterpolation(bool linear) {
     else
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+}
+
+void Texture::setAnisotropy(bool enabled) {
+    if (depthStencil || multisampled) {
+        assert(false);
+        return;
+    }
+    GLfloat max;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max);
 }
 
 void Texture::setBorder(bool clamp) {

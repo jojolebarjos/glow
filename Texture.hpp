@@ -33,6 +33,8 @@ public:
     
     void setInterpolation(bool linear);
     
+    void setAnisotropy(bool enabled);
+    
     void setBorder(bool clamp);
     void setBorder(glm::vec4 const & color);
     
