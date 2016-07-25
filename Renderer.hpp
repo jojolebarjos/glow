@@ -91,6 +91,7 @@ private:
     Shader shading_shader;
     Shader texture_shader;
     Shader resolve_shader;
+    Shader finalize_shader;
     
     Texture render_color;
     Texture render_depthStencil;

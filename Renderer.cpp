@@ -33,10 +33,15 @@ bool Renderer::initialize() {
     texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
     texture_shader.link();
     
-    // Load texture shader
+    // Load multisampling resolution shader
     resolve_shader.addSourceFile(GL_VERTEX_SHADER, "Resolve.vs");
     resolve_shader.addSourceFile(GL_FRAGMENT_SHADER, "Resolve.fs");
     resolve_shader.link();
+    
+    // Load finalization shader (gamma and HDR resolution)
+    finalize_shader.addSourceFile(GL_VERTEX_SHADER, "Finalize.vs");
+    finalize_shader.addSourceFile(GL_FRAGMENT_SHADER, "Finalize.fs");
+    finalize_shader.link();
     
     // Prepare matrices
     glfwGetFramebufferSize(window, &width, &height);
@@ -158,9 +163,6 @@ void Renderer::render() {
     // Select render framebuffer
     render_framebuffer.bind();
     
-    // Geometry rendering is multisampled
-    glEnable(GL_MULTISAMPLE);
-    
     // Clear everything
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -269,20 +271,26 @@ void Renderer::render() {
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_MULTISAMPLE);
     
     // Resolve multisampled buffer
-    //processing_framebuffer[0].bind();
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    processing_framebuffer[0].bind();
     render_color.bind(0);
     resolve_shader.use();
     resolve_shader.setUniform("texture", 0);
+    // TODO set sample count uniform
     drawSquare();
     
     // Bloom
     // TODO 
     
-    // TODO gamma correction and HDR resolution
+    // Correct gamma and resolve HDR
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    processing_color[0].bind(0);
+    finalize_shader.use();
+    finalize_shader.setUniform("texture", 0);
+    // TODO set gamma uniform
+    drawSquare();
+    
 }
 
 void Renderer::drawUntexturedObjects(Shader & shader) {
