@@ -6,7 +6,6 @@
                    projectFiles="true">
       <itemPath>Buffer.hpp</itemPath>
       <itemPath>Common.hpp</itemPath>
-      <itemPath>DepthStencilTexture2D.hpp</itemPath>
       <itemPath>Framebuffer.hpp</itemPath>
       <itemPath>Image.hpp</itemPath>
       <itemPath>Listener.hpp</itemPath>
@@ -18,7 +17,7 @@
       <itemPath>Smoke.hpp</itemPath>
       <itemPath>Sound.hpp</itemPath>
       <itemPath>Source.hpp</itemPath>
-      <itemPath>Texture2D.hpp</itemPath>
+      <itemPath>Texture.hpp</itemPath>
       <itemPath>VertexArray.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -46,7 +45,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>Buffer.cpp</itemPath>
-      <itemPath>DepthStencilTexture2D.cpp</itemPath>
       <itemPath>Framebuffer.cpp</itemPath>
       <itemPath>Image.cpp</itemPath>
       <itemPath>Listener.cpp</itemPath>
@@ -59,7 +57,7 @@
       <itemPath>Smoke.cpp</itemPath>
       <itemPath>Sound.cpp</itemPath>
       <itemPath>Source.cpp</itemPath>
-      <itemPath>Texture2D.cpp</itemPath>
+      <itemPath>Texture.cpp</itemPath>
       <itemPath>VertexArray.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -118,10 +116,6 @@
       </item>
       <item path="Depth.vs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="DepthStencilTexture2D.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="DepthStencilTexture2D.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Extrusion.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
@@ -192,13 +186,13 @@
       </item>
       <item path="Test.bmp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="Texture.fs" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Texture.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Texture.vs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Texture2D.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="Texture2D.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="VertexArray.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -255,10 +249,6 @@
       </item>
       <item path="Depth.vs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="DepthStencilTexture2D.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="DepthStencilTexture2D.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Extrusion.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
@@ -329,13 +319,13 @@
       </item>
       <item path="Test.bmp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="Texture.fs" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Texture.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Texture.vs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Texture2D.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="Texture2D.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="VertexArray.cpp" ex="false" tool="1" flavor2="0">
       </item>

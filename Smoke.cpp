@@ -47,11 +47,11 @@ bool Smoke::initialize() {
     // Create textures
     for (int i = 0; i < 2; ++i) {
         textures[i].bind(i);
-        textures[i].create(width, height, true);
+        textures[i].createColor(width, height, true);
         textures[i].setInterpolation(true);
         textures[i].setBorder(false);
         framebuffers[i].bind();
-        framebuffers[i].attach(textures[i], 0);
+        framebuffers[i].attach(textures[i]);
         framebuffers[i].validate();
         glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);

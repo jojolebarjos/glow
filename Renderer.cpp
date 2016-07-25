@@ -5,7 +5,7 @@
 Renderer::Renderer(GLFWwindow * window) : window(window) {}
 
 Renderer::~Renderer() {
-    for (Texture2D * texture : textures)
+    for (Texture * texture : textures)
         delete texture;
 }
 
@@ -36,6 +36,14 @@ bool Renderer::initialize() {
     glfwGetFramebufferSize(window, &width, &height);
     projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
     view = glm::lookAt(glm::vec3(-2.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    
+    // Create render target
+    color.createColor(width, height, false, true);
+    depthStencil.createDepthStencil(width, height, true);
+    framebuffer.bind();
+    framebuffer.attach(color);
+    framebuffer.attach(depthStencil);
+
     return true;
 }
 
@@ -95,15 +103,14 @@ void Renderer::pack() {
     array.addAttribute(2, 2, GL_FLOAT, 0, count * 4 * (3 + 3));
     
     // Clear old textures
-    for (Texture2D * texture : textures)
+    for (Texture * texture : textures)
         delete texture;
     
     // Create textures
     textures.resize(imageDatas.size());
     for (GLuint index = 0; index < imageDatas.size(); ++index) {
-        textures[index] = new Texture2D();
-        textures[index]->bind(0);
-        textures[index]->create(imageDatas[index]);
+        textures[index] = new Texture();
+        textures[index]->createColor(imageDatas[index], true);
     }
     
 }
@@ -127,13 +134,18 @@ void Renderer::setView(glm::mat4 const & view) {
 
 void Renderer::render() {
     
+    // Select temporary framebuffer
+    framebuffer.bind();
+    
+    // Geometry rendering is multisampled
+    glEnable(GL_MULTISAMPLE);
+    
     // Clear everything
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
     // Enable depth test for geaometry rendering
     glEnable(GL_DEPTH_TEST);
-    // TODO might be able to enable face culling at some point?
     
     // Select depth shader
     depth_shader.use();
@@ -141,7 +153,12 @@ void Renderer::render() {
     depth_shader.setUniform("view", view);
     
     // Draw geometry
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     drawUntexturedObjects(depth_shader);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    // TODO if using mipmap/anisotropic filtering, render texture here, since it needs depth/normal
+    // and then, use deferred shading to compute lightmap
+    // TODO multisampling
 
     // Do not override old depth
     glDepthMask(GL_FALSE);
@@ -232,6 +249,22 @@ void Renderer::render() {
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_MULTISAMPLE);
+    
+    // Copy framebuffer content to screen
+    // TODO is this correct, or should we resolve multisampling in a dedicated shader?
+    // maybe should be done explicitly https://github.com/g-truc/ogl-samples/blob/master/data/gl-450/fbo-multisample-explicit-box.frag
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getHandle());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(
+            0, 0, width, height, 
+            0, 0, width, height, 
+            GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    // TODO bloom
+    
+    // TODO gamma correction and HDR resolution
 }
 
 void Renderer::drawUntexturedObjects(Shader & shader) {

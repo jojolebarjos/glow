@@ -2,8 +2,7 @@
 #ifndef FRAMEBUFFER_HPP
 #define FRAMEBUFFER_HPP
 
-#include "Texture2D.hpp"
-#include "DepthStencilTexture2D.hpp"
+#include "Texture.hpp"
 
 class Framebuffer {
 public:
@@ -14,10 +13,13 @@ public:
     Framebuffer(Framebuffer const &) = delete;
     Framebuffer & operator=(Framebuffer const &) = delete;
     
+    // TODO can store default framebuffer too?
+    
+    GLuint getHandle() const;
+    
     void bind();
     
-    void attach(Texture2D & texture, int attachment);
-    void attach(DepthStencilTexture2D & texture);
+    void attach(Texture & texture);
     
     bool validate();
     
@@ -26,6 +28,7 @@ public:
 private:
     
     GLuint handle;
+    int color;
 
 };
 

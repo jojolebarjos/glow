@@ -3,7 +3,7 @@
 #define GLOW_SMOKE_HPP
 
 #include "Common.hpp"
-#include "Texture2D.hpp"
+#include "Texture.hpp"
 #include "Framebuffer.hpp"
 #include "Shader.hpp"
 #include "VertexArray.hpp"
@@ -31,7 +31,7 @@ private:
     Shader pass3;
     Shader render;
     
-    Texture2D textures[2];
+    Texture textures[2];
     Framebuffer framebuffers[2];
     
     Mesh mesh;

@@ -6,9 +6,10 @@
 #include "Buffer.hpp"
 #include "Image.hpp"
 #include "Mesh.hpp"
-#include "Texture2D.hpp"
+#include "Texture.hpp"
 #include "VertexArray.hpp"
 #include "Shader.hpp"
+#include "Framebuffer.hpp"
 
 class Renderer {
 public:
@@ -75,7 +76,7 @@ private:
     Buffer buffer;
     VertexArray array;
     // TODO use texture array
-    std::vector<Texture2D *> textures;
+    std::vector<Texture *> textures;
     
     std::vector<LightInfo> lights;
     std::vector<MeshInfo> meshes;
@@ -88,6 +89,10 @@ private:
     Shader extrusion_shader;
     Shader shading_shader;
     Shader texture_shader;
+    
+    Texture color;
+    Texture depthStencil;
+    Framebuffer framebuffer;
     
 };
 
