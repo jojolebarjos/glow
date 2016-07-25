@@ -19,7 +19,7 @@ void Framebuffer::bind() {
 }
 
 void Framebuffer::attach(Texture & texture) {
-    GLenum target = texture.isMultisampled() ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    GLenum target = texture.getMultisampling() ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     if (texture.isDepthStencil())
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, target, texture.getHandle(), 0);
     else {

@@ -17,16 +17,16 @@ public:
     GLuint getHandle();
     
     void createColor(Image const & image, bool mipmapped = false);
-    void createColor(int width, int height, bool floating = false, bool multisampled = false);
+    void createColor(int width, int height, bool floating = false, GLuint multisampling = 0);
     
-    void createDepthStencil(GLuint width, GLuint height, bool multisampled = false);
+    void createDepthStencil(GLuint width, GLuint height, GLuint multisampling = 0);
     
     GLuint getWidth() const;
     GLuint getHeight() const;
     
     bool isMipmapped() const;
     bool isDepthStencil() const;
-    bool isMultisampled() const;
+    GLuint getMultisampling() const;
     
     void bind();
     void bind(int slot);
@@ -47,7 +47,7 @@ private:
     GLuint height;
     bool mipmapped;
     bool depthStencil;
-    bool multisampled;
+    GLuint multisampling;
     
 };
 

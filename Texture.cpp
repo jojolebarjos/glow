@@ -3,7 +3,7 @@
 
 #include "Texture.hpp"
 
-Texture::Texture() : width(0), height(0), mipmapped(false), depthStencil(false), multisampled(false) {
+Texture::Texture() : width(0), height(0), mipmapped(false), depthStencil(false), multisampling(0) {
     glGenTextures(1, &handle);
 }
 
@@ -20,7 +20,7 @@ void Texture::createColor(Image const & image, bool mipmapped) {
     height = image.getHeight();
     this->mipmapped = mipmapped;
     depthStencil = false;
-    multisampled = false;
+    multisampling = 0;
     glBindTexture(GL_TEXTURE_2D, handle);
     // TODO use glTexStorage instead https://www.opengl.org/wiki/Common_Mistakes#Creating_a_complete_texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPointer());
@@ -33,16 +33,15 @@ void Texture::createColor(Image const & image, bool mipmapped) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void Texture::createColor(int width, int height, bool floating, bool multisampled) {
+void Texture::createColor(int width, int height, bool floating, GLuint multisampling) {
     this->width = width;
     this->height = height;
     mipmapped = false;
     depthStencil = false;
-    this->multisampled = multisampled;
-    if (multisampled) {
+    this->multisampling = multisampling;
+    if (multisampling) {
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, handle);
-        // TODO give this 4 as a parameter (1, 2, 4, 16, more is useless)
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, floating ? GL_RGBA16F : GL_RGBA8, width, height, GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisampling, floating ? GL_RGBA16F : GL_RGBA8, width, height, GL_TRUE);
     } else {
         glBindTexture(GL_TEXTURE_2D, handle);
         if (floating)
@@ -53,16 +52,15 @@ void Texture::createColor(int width, int height, bool floating, bool multisample
     }
 }
 
-void Texture::createDepthStencil(GLuint width, GLuint height, bool multisampled) {
+void Texture::createDepthStencil(GLuint width, GLuint height, GLuint multisampling) {
     this->width = width;
     this->height = height;
     mipmapped = false;
     depthStencil = true;
-    this->multisampled = multisampled;
-    if (multisampled) {
+    this->multisampling = multisampling;
+    if (multisampling) {
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, handle);
-        // TODO give this 4 as a parameter (1, 2, 4, 16, more is useless)
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH24_STENCIL8, width, height, GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, multisampling, GL_DEPTH24_STENCIL8, width, height, GL_TRUE);
     } else {
         glBindTexture(GL_TEXTURE_2D, handle);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
@@ -85,12 +83,12 @@ bool Texture::isDepthStencil() const {
     return depthStencil;
 }
 
-bool Texture::isMultisampled() const {
-    return multisampled;
+GLuint Texture::getMultisampling() const {
+    return multisampling;
 }
 
 void Texture::bind() {
-    glBindTexture(multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, handle);
+    glBindTexture(multisampling ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, handle);
 }
 
 void Texture::bind(int slot) {
@@ -99,7 +97,7 @@ void Texture::bind(int slot) {
 }
 
 void Texture::setInterpolation(bool linear) {
-    if (depthStencil || multisampled) {
+    if (depthStencil || multisampling) {
         assert(false);
         return;
     }
@@ -111,7 +109,7 @@ void Texture::setInterpolation(bool linear) {
 }
 
 void Texture::setAnisotropy(bool enabled) {
-    if (depthStencil || multisampled) {
+    if (depthStencil || multisampling) {
         assert(false);
         return;
     }
@@ -124,7 +122,7 @@ void Texture::setAnisotropy(bool enabled) {
 }
 
 void Texture::setBorder(bool clamp) {
-    if (depthStencil || multisampled) {
+    if (depthStencil || multisampling) {
         assert(false);
         return;
     }
@@ -134,7 +132,7 @@ void Texture::setBorder(bool clamp) {
 }
 
 void Texture::setBorder(glm::vec4 const & color) {
-    if (depthStencil || multisampled) {
+    if (depthStencil || multisampling) {
         assert(false);
         return;
     }

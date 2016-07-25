@@ -38,11 +38,12 @@ bool Renderer::initialize() {
     view = glm::lookAt(glm::vec3(-2.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     
     // Create render target
-    color.createColor(width, height, false, true);
-    depthStencil.createDepthStencil(width, height, true);
+    color.createColor(width, height, false, 4);
+    depthStencil.createDepthStencil(width, height, 4);
     framebuffer.bind();
     framebuffer.attach(color);
     framebuffer.attach(depthStencil);
+    framebuffer.validate();
 
     return true;
 }
