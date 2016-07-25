@@ -10,6 +10,7 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::initialize() {
+    // TODO handle errors
     
     // Load depth-only rendering shader
     depth_shader.addSourceFile(GL_VERTEX_SHADER, "Depth.vs");
@@ -32,18 +33,34 @@ bool Renderer::initialize() {
     texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
     texture_shader.link();
     
+    // Load texture shader
+    resolve_shader.addSourceFile(GL_VERTEX_SHADER, "Resolve.vs");
+    resolve_shader.addSourceFile(GL_FRAGMENT_SHADER, "Resolve.fs");
+    resolve_shader.link();
+    
     // Prepare matrices
     glfwGetFramebufferSize(window, &width, &height);
     projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
     view = glm::lookAt(glm::vec3(-2.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     
     // Create render target
-    color.createColor(width, height, false, 4);
-    depthStencil.createDepthStencil(width, height, 4);
-    framebuffer.bind();
-    framebuffer.attach(color);
-    framebuffer.attach(depthStencil);
-    framebuffer.validate();
+    render_color.createColor(width, height, true, 4);
+    render_depthStencil.createDepthStencil(width, height, 4);
+    render_framebuffer.bind();
+    render_framebuffer.attach(render_color);
+    render_framebuffer.attach(render_depthStencil);
+    render_framebuffer.validate();
+    
+    // Create processing targets
+    for (int i = 0; i < 3; ++i) {
+        processing_color[i].createColor(width, height, true);
+        processing_framebuffer[i].bind();
+        processing_framebuffer[i].attach(processing_color[i]);
+        processing_framebuffer[i].validate();
+    }
+    
+    // Load "default" mesh 0 used for processing
+    loadMesh("Square.obj");
 
     return true;
 }
@@ -135,8 +152,11 @@ void Renderer::setView(glm::mat4 const & view) {
 
 void Renderer::render() {
     
-    // Select temporary framebuffer
-    framebuffer.bind();
+    // Use the same vertex array for everything
+    array.bind();
+    
+    // Select render framebuffer
+    render_framebuffer.bind();
     
     // Geometry rendering is multisampled
     glEnable(GL_MULTISAMPLE);
@@ -153,13 +173,12 @@ void Renderer::render() {
     depth_shader.setUniform("projection", projection);
     depth_shader.setUniform("view", view);
     
-    // Draw geometry
+    // Draw geometry (depth-only))
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     drawUntexturedObjects(depth_shader);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     // TODO if using mipmap/anisotropic filtering, render texture here, since it needs depth/normal
     // and then, use deferred shading to compute lightmap
-    // TODO multisampling
 
     // Do not override old depth
     glDepthMask(GL_FALSE);
@@ -252,18 +271,16 @@ void Renderer::render() {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_MULTISAMPLE);
     
-    // Copy framebuffer content to screen
-    // TODO is this correct, or should we resolve multisampling in a dedicated shader?
-    // maybe should be done explicitly https://github.com/g-truc/ogl-samples/blob/master/data/gl-450/fbo-multisample-explicit-box.frag
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.getHandle());
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(
-            0, 0, width, height, 
-            0, 0, width, height, 
-            GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    // Resolve multisampled buffer
+    //processing_framebuffer[0].bind();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render_color.bind(0);
+    resolve_shader.use();
+    resolve_shader.setUniform("texture", 0);
+    drawSquare();
     
-    // TODO bloom
+    // Bloom
+    // TODO 
     
     // TODO gamma correction and HDR resolution
 }
@@ -273,7 +290,6 @@ void Renderer::drawUntexturedObjects(Shader & shader) {
     // Need https://www.opengl.org/sdk/docs/man/html/glVertexAttribDivisor.xhtml
     // And http://www.g-truc.net/post-0518.html
     // i.e. use element draw asap
-    array.bind();
     for (MeshInfo & mesh : meshes) {
         shader.setUniform("model", mesh.transform);
         glm::ivec2 m = meshMaps[mesh.mesh];
@@ -287,7 +303,6 @@ void Renderer::drawCasterObjects(Shader & shader) {
 }
 
 void Renderer::drawTexturedObjects(Shader & shader) {
-    array.bind();
     shader.setUniform("texture", 0);
     for (MeshInfo & mesh : meshes) {
         shader.setUniform("model", mesh.transform);
@@ -296,4 +311,8 @@ void Renderer::drawTexturedObjects(Shader & shader) {
         glm::ivec2 m = meshMaps[mesh.mesh];
         glDrawArrays(GL_TRIANGLES, m.x, m.y);
     }
+}
+
+void Renderer::drawSquare() {
+    glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
 }

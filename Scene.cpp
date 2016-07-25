@@ -26,7 +26,6 @@ bool Scene::initialize() {
     renderer.initialize();
     renderer.loadImage("Test.bmp");
     renderer.loadMesh("Cube.obj");
-    renderer.loadMesh("Square.obj");
     renderer.pack();
     
     // Create physics
@@ -39,7 +38,7 @@ bool Scene::initialize() {
     
     // Create floor
     Object * plane = addObject(new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
-    plane->mesh.mesh = 1;
+    plane->mesh.mesh = 0;
     plane->mesh.color = 0;
     
     // Prepare listener
@@ -134,7 +133,7 @@ Scene::Object * Scene::addObject(btCollisionShape * shape, glm::vec3 const & pos
 Scene::Object * Scene::addCube(glm::vec3 const & position) {
     btBoxShape * shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
     Object * result = addObject(shape, position, 1.0f);
-    result->mesh.mesh = 0;
+    result->mesh.mesh = 1;
     result->mesh.color = 0;
     return result;
 }

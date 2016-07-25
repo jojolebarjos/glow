@@ -58,6 +58,7 @@ private:
     void drawUntexturedObjects(Shader & shader);
     void drawCasterObjects(Shader & shader);
     void drawTexturedObjects(Shader & shader);
+    void drawSquare();
     
     GLFWwindow * window;
     int width;
@@ -89,10 +90,14 @@ private:
     Shader extrusion_shader;
     Shader shading_shader;
     Shader texture_shader;
+    Shader resolve_shader;
     
-    Texture color;
-    Texture depthStencil;
-    Framebuffer framebuffer;
+    Texture render_color;
+    Texture render_depthStencil;
+    Framebuffer render_framebuffer;
+    
+    Texture processing_color[3];
+    Framebuffer processing_framebuffer[3];
     
 };
 

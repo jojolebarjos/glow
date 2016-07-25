@@ -29,6 +29,8 @@
       <itemPath>Extrusion.fs</itemPath>
       <itemPath>Extrusion.gs</itemPath>
       <itemPath>Extrusion.vs</itemPath>
+      <itemPath>Resolve.fs</itemPath>
+      <itemPath>Resolve.vs</itemPath>
       <itemPath>Shading.fs</itemPath>
       <itemPath>Shading.vs</itemPath>
       <itemPath>Smoke.vs</itemPath>
@@ -143,6 +145,10 @@
       <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Resolve.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Resolve.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Sampler.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -276,6 +282,10 @@
       <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Resolve.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Resolve.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Sampler.cpp" ex="false" tool="1" flavor2="0">
       </item>
