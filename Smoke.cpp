@@ -46,7 +46,6 @@ bool Smoke::initialize() {
     
     // Create textures
     for (int i = 0; i < 2; ++i) {
-        textures[i].bind(i);
         textures[i].createColor(width, height, true);
         textures[i].setInterpolation(true);
         textures[i].setBorder(false);
