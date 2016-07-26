@@ -30,7 +30,16 @@ public:
     void setString(std::string const & value);
     
     bool isVector() const;
-    // TODO array access (get, set, size, at)
+    bool isMap() const;
+    uint32_t getSize() const;
+    Value get(uint32_t index) const;
+    Value get(std::string const & key) const;
+    // TODO set for vector and map
+    
+    bool isFunction() const;
+    Function getFunction() const;
+    void setFunction(Function const & value);
+    Value evaluate(Value const & value);
     
 private:
     

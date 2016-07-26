@@ -21,6 +21,8 @@ public:
     
     // TODO get/set pointer
     
+    void setValue(Value const & value);
+    
     bool setCode(std::string const & code);
     bool setCodeFile(std::string const & path);
     // TODO get code?

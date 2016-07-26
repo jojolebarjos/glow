@@ -29,7 +29,7 @@ Value & Value::operator=(Value const & value) {
                 // TODO set map
                 break;
             case FUNCTION:
-                // TODO set function
+                setFunction(*value.data.fn);
                 break;
         }
     return *this;
@@ -107,7 +107,7 @@ bool Value::isString() const {
 std::string Value::getString() const {
     switch (type) {
         case NONE:
-            return "none";
+            return "<none>";
         case FLOAT:
             char buffer[16];
             sprintf(buffer, "%f", data.f);
@@ -115,11 +115,11 @@ std::string Value::getString() const {
         case STRING:
             return *data.s;
         case VECTOR:
-            return ""; // TODO return concat? first element?
+            return "<vector>"; // TODO return concat? first element?
         case MAP:
-            return ""; // TODO concat?
+            return "<map>"; // TODO concat?
         case FUNCTION:
-            return ""; //function? print code?
+            return "<function>"; //function? print code?
     }
     return "";
 }
@@ -136,4 +136,88 @@ void Value::setString(std::string const & value) {
 
 bool Value::isVector() const {
     return type == VECTOR;
+}
+
+bool Value::isMap() const {
+    return type == MAP;
+}
+
+uint32_t Value::getSize() const {
+    switch (type) {
+        case NONE:
+            return 0;
+        case FLOAT:
+        case STRING:
+        case FUNCTION:
+            return 1;
+        case VECTOR:
+            return data.v->size();
+        case MAP:
+            return data.m->size();
+    }
+    return 0;
+}
+
+Value Value::get(uint32_t index) const {
+    switch (type) {
+        case NONE:
+            return Value();
+        case FLOAT:
+        case STRING:
+        case FUNCTION:
+            return index == 0 ? *this : Value();
+        case VECTOR:
+            return index < data.v->size() ? (*data.v)[index] : Value();
+        case MAP:
+            // TODO return map element by index
+            return Value();
+    }
+    return Value();
+}
+
+Value Value::get(std::string const & key) const {
+    if (type == MAP) {
+        auto it = data.m->find(key);
+        if (it != data.m->end())
+            return it->second;
+    }
+    return Value();
+}
+    
+bool Value::isFunction() const {
+    return type == FUNCTION;
+}
+
+Function Value::getFunction() const {
+    if (type == FUNCTION)
+        return *data.fn;
+    else {
+        Function function;
+        function.setValue(*this);
+        return function;
+    }
+}
+
+void Value::setFunction(Function const & value) {
+    setNone();
+    type = FUNCTION;
+    data.fn = new Function(value);
+}
+
+Value Value::evaluate(Value const & value) {
+    switch (type) {
+        case NONE:
+        case FLOAT:
+        case STRING:
+            return *this;
+        case VECTOR:
+            // TODO access element
+            return Value();
+        case MAP:
+            // TODO access element
+            return Value();
+        case FUNCTION:
+            return data.fn->evaluate(value);
+    }
+    return Value();
 }

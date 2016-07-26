@@ -24,11 +24,13 @@ struct Function::Impl {
     Impl() : count(1), parent(nullptr), statement(nullptr) {}
     
     ~Impl() {
+        // TODO find a way to avoid cyclic refs causing memory leak
         delete parent;
         delete statement;
     }
     
     Value get(std::string const & name) {
+        std::cout << "GET " << name << std::endl;
         auto it = variables.find(name);
         if (it != variables.end())
             return it->second;
@@ -38,6 +40,7 @@ struct Function::Impl {
     }
     
     void set(std::string const & name, Value const & value) {
+        std::cout << "SET " << name << " " << value.getString() << std::endl;
         // TODO check if exist in parent
         variables[name] = value;
     }
@@ -115,8 +118,6 @@ struct Function::Impl {
         }
     };
 
-    // TODO other statements?
-
     struct ValueExpression : Expression {
         Value value;
         Value evaluate(Impl & context) const {
@@ -130,9 +131,33 @@ struct Function::Impl {
             return context.get(key);
         }
     };
-
-    // TODO other expressions
     
+    struct CallExpression : Expression {
+        Expression * function = nullptr;
+        Expression * argument = nullptr;
+        ~CallExpression() {
+            delete function;
+            delete argument;
+        }
+        Value evaluate(Impl & context) const {
+            Value f(function->evaluate(context));
+            Value a(argument->evaluate(context));
+            return f.evaluate(a);
+        }
+    };
+    
+    struct ArrayExpression : Expression {
+        std::vector<Expression *> expressions;
+        ~ArrayExpression() {
+            for (Expression * expression : expressions)
+                delete expression;
+        }
+        Value evaluate(Impl & context) const {
+            // TODO pack array
+            return Value();
+        }
+    };
+
     struct Token {
         enum Type {
             END,
@@ -163,7 +188,7 @@ struct Function::Impl {
             uint32_t indent = 0;
             while (pointer[0] == ' ' || pointer[0] == '\t') {
                 indent += pointer[0] == ' ' ? 1 : 4;
-                ++column;
+                column += pointer[0] == ' ' ? 1 : 4;
                 ++pointer;
             }
             
@@ -274,6 +299,7 @@ struct Function::Impl {
                     ++pointer;
                     while (pointer[0] != '\0' && pointer[0] != '"') {
                         // TODO handle escape
+                        // TODO handle line break
                         token.text += pointer[0];
                         ++column;
                         ++pointer;
@@ -306,7 +332,7 @@ struct Function::Impl {
         return true;
     }
     
-    static Expression * parseExpression(Token * & pointer);
+    static Expression * parseExpression(Token * & pointer, int priority = 0);
     
     static Expression * parseExpressionAndBreak(Token * & pointer) {
         Expression * expression = parseExpression(pointer);
@@ -360,30 +386,92 @@ struct Function::Impl {
     
     static Function * parse(std::string const & code) {
         std::vector<Token> tokens;
-        tokenize(code, tokens);
+        if (!tokenize(code, tokens))
+            return nullptr;
         Token * pointer = &tokens[0];
         return parse(pointer, {});
     }
     
 };
 
-Function::Impl::Expression * Function::Impl::parseExpression(Token * & pointer) {
+Function::Impl::Expression * Function::Impl::parseExpression(Token * & pointer, int priority) {
     
-    // End
-    if (pointer[0].type == Token::END) {
-        std::cout << pointer->row << ':' << pointer->column << ": unexpected end of document" << std::endl;
+    // Check for preoperators
+    // TODO preoperators (not, -)
+    
+    // Parse primary expression
+    Expression * left;
+    if (pointer[0].type == Token::NUMBER) {
+        ValueExpression * expression = new ValueExpression();
+        // TODO set as number
+        expression->value.setString(pointer[0].text);
+        left = expression;
+        ++pointer;
+    } else if (pointer[0].type == Token::STRING) {
+        ValueExpression * expression = new ValueExpression();
+        expression->value.setString(pointer[0].text);
+        left = expression;
+        ++pointer;
+    } else if (pointer[0].type == Token::NAME) {
+        // TODO check if this is not a reserved word
+        QueryExpression * expression = new QueryExpression();
+        expression->key = pointer[0].text;
+        left = expression;
+        ++pointer;
+    } else if (pointer[0].type == Token::SYMBOL && pointer[0].text == "(") {
+        ++pointer;
+        left = parseExpression(pointer);
+        if (!left)
+            return nullptr;
+        if (pointer[0].type != Token::SYMBOL || pointer[0].text != "(") {
+            std::cout << pointer->row << ':' << pointer->column << ": expected ')'" << std::endl;
+            return nullptr;
+        }
+        ++pointer;
+    } else {
+        std::cout << pointer->row << ':' << pointer->column << ": unexpected token" << std::endl;
         return nullptr;
     }
     
-    // TODO parse expression
-    if (pointer[0].type == Token::NUMBER) {
-        ValueExpression * expression = new ValueExpression();
-        expression->value.setString(pointer[0].text);
-        ++pointer;
-        return expression;
+    // Check for postoperators
+    while (true) {
+        if (pointer[0].type == Token::SYMBOL && pointer[0].text == "(") {
+            ++pointer;
+            ArrayExpression * arguments = new ArrayExpression();
+            if (pointer[0].type != Token::SYMBOL || pointer[0].text != ")")
+                while (true) {
+                    Expression * argument = parseExpression(pointer);
+                    if (!argument) {
+                        delete left;
+                        delete arguments;
+                        return nullptr;
+                    }
+                    arguments->expressions.push_back(argument);
+                    if (pointer[0].type == Token::SYMBOL && pointer[0].text == ")")
+                        break;
+                    if (pointer[0].type != Token::SYMBOL || pointer[0].text != ",") {
+                        std::cout << pointer->row << ':' << pointer->column << ": unexpected ',' or ')'" << std::endl;
+                        delete left;
+                        delete arguments;
+                        return nullptr;
+                    }
+                }
+            ++pointer;
+            CallExpression * call = new CallExpression();
+            call->function = left;
+            call->argument = arguments;
+            left = call;
+            continue;
+        }
+        // TODO postoperators (dot)
+        break;
     }
     
-    return nullptr;
+    // Check for binary operators
+    // TODO binary operators (+, -, *, /, %, <, >, <>, ==, <=, >=, and, or)
+    
+    // End of expression
+    return left;
 }
 
 Function::Impl::Statement * Function::Impl::parseStatement(Token * & pointer) {
@@ -448,11 +536,61 @@ Function::Impl::Statement * Function::Impl::parseStatement(Token * & pointer) {
         return statement;
     }
 
+    // TODO other statements?
+
     // Function declaration (represented as an assignment)
     if (pointer[0].type == Token::NAME && pointer[0].text == "def") {
-        // TODO def (call main parse method and recurse)
-        std::cout << pointer->row << ':' << pointer->column << ": function definition not yet implemented" << std::endl;
-        return nullptr;
+        ++pointer;
+        
+        // Get function name
+        if (pointer[0].type != Token::NAME) {
+            std::cout << pointer->row << ':' << pointer->column << ": expected identifier after 'def'" << std::endl;
+            return nullptr;
+        }
+        std::string key = pointer[0].text;
+        ++pointer;
+        
+        // Get function arguments
+        std::vector<std::string> arguments;
+        if (pointer[0].type == Token::SYMBOL && pointer[0].text == "(") {
+            ++pointer;
+            if (pointer[0].type != Token::SYMBOL || pointer[0].text != ")")
+                while (true) {
+                    if (pointer[0].type != Token::NAME) {
+                        std::cout << pointer->row << ':' << pointer->column << ": expected identifier" << std::endl;
+                        return nullptr;
+                    }
+                    arguments.push_back(pointer[0].text);
+                    // TODO check if reserved word
+                    ++pointer;
+                    if (pointer[0].type == Token::SYMBOL && pointer[0].text == ")")
+                        break;
+                    if (pointer[0].type != Token::SYMBOL || pointer[0].text != ",") {
+                        std::cout << pointer->row << ':' << pointer->column << ": expected ',' or ')' after identifier" << std::endl;
+                        return nullptr;
+                    }
+                    ++pointer;
+                }
+            ++pointer;
+        }
+        if (pointer[0].type != Token::BREAK) {
+            std::cout << pointer->row << ':' << pointer->column << ": expected line break after function header" << std::endl;
+            return nullptr;
+        }
+        ++pointer;
+        
+        // Parse function body
+        Function * function = parse(pointer, arguments);
+        if (!function)
+            return nullptr;
+        
+        // Define function as an assignment
+        ValueExpression * expression = new ValueExpression();
+        expression->value.setFunction(*function);
+        AssignStatement * statement = new AssignStatement();
+        statement->key = key;
+        statement->value = expression;
+        return statement;
     }
 
     // Assignment
@@ -504,6 +642,16 @@ Function::~Function() {
         delete impl;
 }
 
+void Function::setValue(Value const & value) {
+    Function function;
+    Impl::ValueExpression * expression = new Impl::ValueExpression();
+    expression->value = value;
+    Impl::ExpressionStatement * statement = new Impl::ExpressionStatement();
+    statement->value = expression;
+    function.impl->statement = statement;
+    *this = function;
+}
+
 bool Function::setCode(std::string const & code) {
     Function * function = Impl::parse(code);
     if (!function)
@@ -530,12 +678,15 @@ bool Function::setCodeFile(std::string const & path) {
 }
 
 Value Function::evaluate(Value const & value) {
-    // TODO always define variable 'args'?
-    // TODO assign arguments from value
-    try {
-        impl->statement->evaluate(*impl);
-    } catch (Value & result) {
-        return result;
+    if (impl->statement) {
+        impl->variables["args"] = value;
+        for (size_t i = 0; i < impl->arguments.size(); ++i)
+            impl->variables[impl->arguments[i]] = value.get(i);
+        try {
+            impl->statement->evaluate(*impl);
+        } catch (Value & result) {
+            return result;
+        }
     }
     return Value();
 }
