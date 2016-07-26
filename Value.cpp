@@ -183,6 +183,16 @@ Value Value::get(std::string const & key) const {
     }
     return Value();
 }
+
+void Value::setVector(std::vector<Value> const & value) {
+    if (type == VECTOR)
+        *data.v = value;
+    else {
+        setNone();
+        type = VECTOR;
+        data.v = new std::vector<Value>(value);
+    }
+}
     
 bool Value::isFunction() const {
     return type == FUNCTION;

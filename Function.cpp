@@ -30,7 +30,6 @@ struct Function::Impl {
     }
     
     Value get(std::string const & name) {
-        std::cout << "GET " << name << std::endl;
         auto it = variables.find(name);
         if (it != variables.end())
             return it->second;
@@ -40,7 +39,6 @@ struct Function::Impl {
     }
     
     void set(std::string const & name, Value const & value) {
-        std::cout << "SET " << name << " " << value.getString() << std::endl;
         // TODO check if exist in parent
         variables[name] = value;
     }
@@ -153,11 +151,70 @@ struct Function::Impl {
                 delete expression;
         }
         Value evaluate(Impl & context) const {
-            // TODO pack array
-            return Value();
+            std::vector<Value> array;
+            for (Expression * expression : expressions)
+                array.push_back(expression->evaluate(context));
+            Value result;
+            result.setVector(array);
+            return result;
         }
     };
-
+    
+    struct BinaryExpression : Expression {
+        Expression * left = nullptr;
+        Expression * right = nullptr;
+        ~BinaryExpression() {
+            delete left;
+            delete right;
+        }
+    };
+    
+    // TODO boolean operators
+    
+    // TODO comparison operators
+    
+    struct PlusExpression : BinaryExpression {
+        Value evaluate(Impl & context) const {
+            float l = left->evaluate(context).getFloat();
+            float r = right->evaluate(context).getFloat();
+            Value result;
+            result.setFloat(l + r);
+            return result;
+        }
+    };
+    
+    struct MinusExpression : BinaryExpression {
+        Value evaluate(Impl & context) const {
+            float l = left->evaluate(context).getFloat();
+            float r = right->evaluate(context).getFloat();
+            Value result;
+            result.setFloat(l - r);
+            return result;
+        }
+    };
+    
+    // TODO modulo
+    
+    struct TimesExpression : BinaryExpression {
+        Value evaluate(Impl & context) const {
+            float l = left->evaluate(context).getFloat();
+            float r = right->evaluate(context).getFloat();
+            Value result;
+            result.setFloat(l * r);
+            return result;
+        }
+    };
+    
+    struct DivideExpression : BinaryExpression {
+        Value evaluate(Impl & context) const {
+            float l = left->evaluate(context).getFloat();
+            float r = right->evaluate(context).getFloat();
+            Value result;
+            result.setFloat(l / r);
+            return result;
+        }
+    };
+    
     struct Token {
         enum Type {
             END,
@@ -403,8 +460,7 @@ Function::Impl::Expression * Function::Impl::parseExpression(Token * & pointer, 
     Expression * left;
     if (pointer[0].type == Token::NUMBER) {
         ValueExpression * expression = new ValueExpression();
-        // TODO set as number
-        expression->value.setString(pointer[0].text);
+        expression->value.setFloat(strtof(pointer[0].text.c_str(), nullptr));
         left = expression;
         ++pointer;
     } else if (pointer[0].type == Token::STRING) {
@@ -455,6 +511,7 @@ Function::Impl::Expression * Function::Impl::parseExpression(Token * & pointer, 
                         delete arguments;
                         return nullptr;
                     }
+                    ++pointer;
                 }
             ++pointer;
             CallExpression * call = new CallExpression();
@@ -468,10 +525,39 @@ Function::Impl::Expression * Function::Impl::parseExpression(Token * & pointer, 
     }
     
     // Check for binary operators
-    // TODO binary operators (+, -, *, /, %, <, >, <>, ==, <=, >=, and, or)
-    
-    // End of expression
-    return left;
+    while (true) {
+        
+        // Get operator
+        BinaryExpression * binary = nullptr;
+        int new_priority = 0;
+        if (pointer[0].type == Token::SYMBOL && pointer[0].text == "+") {
+            binary = new PlusExpression();
+            new_priority = 5;
+        } else if (pointer[0].type == Token::SYMBOL && pointer[0].text == "-") {
+            binary = new MinusExpression();
+            new_priority = 6;
+        } else if (pointer[0].type == Token::SYMBOL && pointer[0].text == "*") {
+            binary = new TimesExpression();
+            new_priority = 8;
+        } else if (pointer[0].type == Token::SYMBOL && pointer[0].text == "/") {
+            binary = new DivideExpression();
+            new_priority = 9;
+        }
+        
+        // Check priority
+        if (binary == nullptr || new_priority <= priority)
+            return left;
+        
+        // Get right part
+        ++pointer;
+        binary->left = left;
+        binary->right = parseExpression(pointer, new_priority);
+        if (!binary->right) {
+            delete binary;
+            return nullptr;
+        }
+        left = binary;
+    }
 }
 
 Function::Impl::Statement * Function::Impl::parseStatement(Token * & pointer) {

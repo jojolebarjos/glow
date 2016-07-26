@@ -35,6 +35,7 @@ public:
     Value get(uint32_t index) const;
     Value get(std::string const & key) const;
     // TODO set for vector and map
+    void setVector(std::vector<Value> const & value);
     
     bool isFunction() const;
     Function getFunction() const;
