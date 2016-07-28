@@ -3,11 +3,11 @@
 #define GLOW_COMMON_HPP
 
 #define GLOW_DEBUG_CONTEXT
-#define GLOW_OPENAL
-#define GLOW_OPENVR
+#define GLOW_PNG_ZLIB
 #define GLOW_JPEG
+#define GLOW_OPENAL
 #define GLOW_OGG_VORBIS
-// TODO #define GLOW_PNG_ZLIB
+#define GLOW_OPENVR
 
 #define GLEW_STATIC
 #include <GL/glew.h>

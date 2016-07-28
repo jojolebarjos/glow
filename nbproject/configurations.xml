@@ -105,6 +105,8 @@
             <linkerOptionItem>-lopengl32</linkerOptionItem>
             <linkerOptionItem>-lglu32</linkerOptionItem>
             <linkerOptionItem>-lgdi32</linkerOptionItem>
+            <linkerOptionItem>-lpng16</linkerOptionItem>
+            <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
             <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
@@ -259,6 +261,7 @@
             <linkerOptionItem>-lopengl32</linkerOptionItem>
             <linkerOptionItem>-lglu32</linkerOptionItem>
             <linkerOptionItem>-lgdi32</linkerOptionItem>
+            <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>
             <linkerOptionItem>-lBulletDynamics.dll</linkerOptionItem>
