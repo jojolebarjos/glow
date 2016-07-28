@@ -25,7 +25,7 @@ public:
     bool loadWav(std::string const & path, Conversion conversion = NONE);
     bool loadOgg(std::string const & path, Conversion conversion = NONE);
     
-    ALenum getFormat() const;
+    int getFormat() const;
     uint32_t getChannels() const;
     uint32_t getBits() const;
     uint32_t getBytesPerSample() const;

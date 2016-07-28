@@ -33,12 +33,16 @@ bool Sampler::loadOgg(std::string const & path, Conversion conversion) {
     return reader;
 }
 
-ALenum Sampler::getFormat() const {
+int Sampler::getFormat() const {
+#ifdef GLOW_OPENAL
     if (!reader)
         return AL_NONE;
     if (reader->channels == 2)
         return reader->bits == 16 ? AL_FORMAT_STEREO16 : AL_FORMAT_STEREO8;
     return reader->bits == 16 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
+#else
+    return 0;
+#endif
 }
 
 uint32_t Sampler::getChannels() const {

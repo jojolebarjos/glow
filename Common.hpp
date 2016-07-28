@@ -3,7 +3,7 @@
 #define GLOW_COMMON_HPP
 
 #define GLOW_DEBUG_CONTEXT
-// TODO #define GLOW_OPENAL
+#define GLOW_OPENAL
 #define GLOW_OPENVR
 #define GLOW_JPEG
 #define GLOW_OGG_VORBIS
@@ -20,9 +20,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+#ifdef GLOW_OPENAL
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/efx.h>
+#endif
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"

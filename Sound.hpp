@@ -25,10 +25,14 @@ private:
     // TODO streaming sampler constructor
     ~Sound();
     
+#ifdef GLOW_OPENAL
+    
     ALuint handle;
     
     // TODO streaming buffers
     // TODO flag to know whether the stream is playing, to forbid multiple sources
+    
+#endif
 
 };
 

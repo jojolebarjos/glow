@@ -34,6 +34,8 @@ private:
     Source(Listener * listener);
     ~Source() = default;
 
+#ifdef GLOW_OPENAL
+    
     Listener * listener;
     std::list<Source *>::iterator iterator;
     bool released;
@@ -43,6 +45,8 @@ private:
     Sound * sound;
     glm::vec3 position;
 
+#endif
+    
 };
 
 #endif

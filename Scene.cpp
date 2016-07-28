@@ -48,10 +48,12 @@ bool Scene::initialize() {
     plane->mesh.color = 0;
     
     // Prepare listener
-    listener.initialize();
-    Sampler sampler;
-    sampler.load("Test.wav", Sampler::LEFT);
-    sound = listener.addSoundBuffer(sampler);
+    sound = nullptr;
+    if (listener.initialize()) {
+        Sampler sampler;
+        sampler.load("Test.wav", Sampler::LEFT);
+        sound = listener.addSoundBuffer(sampler);
+    }
     
     return true;
 }
@@ -67,10 +69,12 @@ void Scene::update() {
     static bool just = false;
     if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
         addCube({5, 0, 5});
-        Source * source = listener.addSource(sound);
-        source->setPosition({5, 0, 0});
-        source->play();
-        source->release();
+        if (sound) {
+            Source * source = listener.addSource(sound);
+            source->setPosition({5, 0, 0});
+            source->play();
+            source->release();
+        }
         just = true;
     }
     if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_RELEASE)

@@ -1,6 +1,8 @@
 
 #include "Source.hpp"
 
+#ifdef GLOW_OPENAL
+
 void Source::setPosition(glm::vec3 const & position) {
     this->position = position;
     if (binding)
@@ -74,3 +76,25 @@ void Source::release() {
 }
 
 Source::Source(Listener * listener) : listener(listener), released(false), binding(nullptr) {}
+
+#else
+
+void Source::setPosition(glm::vec3 const & position) {}
+
+glm::vec3 Source::getPosition() const {
+    return glm::vec3();
+}
+
+void Source::play() {}
+
+void Source::stop() {}
+
+bool Source::isPlaying() const {
+    return false;
+}
+
+void Source::release() {}
+
+Source::Source(Listener * listener) {}
+
+#endif

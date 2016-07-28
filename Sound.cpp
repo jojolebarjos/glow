@@ -2,6 +2,8 @@
 #include "Sound.hpp"
 #include "Source.hpp"
 
+#ifdef GLOW_OPENAL
+
 Sound::Sound(Sampler * sampler) {
     
     // Create buffer
@@ -21,3 +23,11 @@ Sound::Sound(Sampler * sampler) {
 Sound::~Sound() {
     alDeleteBuffers(1, &handle);
 }
+
+#else
+
+Sound::Sound(Sampler * sampler) {}
+
+Sound::~Sound() {}
+
+#endif

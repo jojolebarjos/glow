@@ -3,6 +3,8 @@
 #include "Source.hpp"
 #include "Sound.hpp"
 
+#ifdef GLOW_OPENAL
+
 Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
 
 Listener::~Listener() {
@@ -120,7 +122,7 @@ void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {
 
 Sound * Listener::addSoundBuffer(Sampler & sampler) {
     Sound * sound = new Sound(&sampler);
-    sounds.push_front(sound);;
+    sounds.push_front(sound);
     return sound;
 }
 
@@ -136,3 +138,37 @@ Source * Listener::addSource(Sound * sound) {
     source->sound = sound;
     return source;
 }
+
+#else
+
+Listener::Listener() {}
+
+Listener::~Listener() {}
+
+bool Listener::initialize() {
+    return false;
+}
+
+void Listener::update() {}
+
+void Listener::setPosition(glm::vec3 const & position) {}
+
+glm::vec3 Listener::getPosition() {
+    return glm::vec3();
+}
+
+void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {}
+
+Sound * Listener::addSoundBuffer(Sampler & sampler) {
+    return nullptr;
+}
+
+Sound * Listener::addSoundStream(Sampler * sampler) {
+    return nullptr;
+}
+
+Source * Listener::addSource(Sound * sound) {
+    return nullptr;
+}
+
+#endif

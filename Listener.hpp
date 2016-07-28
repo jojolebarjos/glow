@@ -82,6 +82,8 @@ public:
     
 private:
 
+#ifdef GLOW_OPENAL
+    
     ALCdevice * device;
     ALCcontext * context;
     bool efx;
@@ -94,6 +96,8 @@ private:
     
     std::list<Sound *> sounds;
     std::list<Source *> sources;
+    
+#endif
     
 };
 
