@@ -6,24 +6,26 @@
 Smoke::Smoke(Window * window) : window(window) {}
 
 bool Smoke::initialize() {
-    // TODO check errors
     
     // Load shaders
     pass1.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     pass1.addSourceFile(GL_FRAGMENT_SHADER, "Smoke1.fs");
-    pass1.link();
     pass2.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     pass2.addSourceFile(GL_FRAGMENT_SHADER, "Smoke2.fs");
-    pass2.link();
     pass3.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     pass3.addSourceFile(GL_FRAGMENT_SHADER, "Smoke3.fs");
-    pass3.link();
     render.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     render.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
-    render.link();
+    if (!pass1.link() || !pass2.link() || !pass3.link() || !render.link()) {
+        std::cout << "Failed to compile shaders" << std::endl;
+        return false;
+    }
     
-    // Load quad
-    mesh.load("Square.obj");
+    // Load square
+    if (!mesh.load("Square.obj")) {
+        std::cout << "Failed to load Square.obj" << std::endl;
+        return false;
+    }
     buffer.bind(GL_ARRAY_BUFFER);
     buffer.setData(mesh.getCount() * 4 * (3 + 2), nullptr, GL_STATIC_DRAW);
     buffer.setSubData(0, mesh.getCount() * 4 * 3, mesh.getPositions());
@@ -31,17 +33,6 @@ bool Smoke::initialize() {
     array.bind();
     array.addAttribute(0, 3, GL_FLOAT, 0, 0);
     array.addAttribute(1, 2, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
-    
-    // Get screen size
-    glm::vec2 size(window->getWidth(), window->getHeight());
-    pass1.use();
-    pass1.setUniform("size", size);
-    pass2.use();
-    pass2.setUniform("size", size);
-    pass3.use();
-    pass3.setUniform("size", size);
-    render.use();
-    render.setUniform("size", size);
     
     // Create textures
     for (int i = 0; i < 2; ++i) {
@@ -51,7 +42,7 @@ bool Smoke::initialize() {
         framebuffers[i].bind();
         framebuffers[i].attach(textures[i]);
         framebuffers[i].validate();
-        glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     }
     
@@ -61,6 +52,7 @@ bool Smoke::initialize() {
 }
 
 void Smoke::update() {
+    // TODO add VR support (draw on the ground)
     
     // Bind objects
     array.bind();
@@ -68,6 +60,7 @@ void Smoke::update() {
     textures[1].bind(1);
 
     // Apply forces
+    // TODO improve force application (i.e. more freedom on velocity direction/magnitude)
     int mode = window->isMouseButtonDown(0) ? 1 : window->isMouseButtonDown(1) ? 2 : 0;
     pass1.use();
     pass1.setUniform("mode", mode);

@@ -4,36 +4,29 @@ in vec2 v_coordinate;
 
 out vec4 next;
 
-uniform vec2 size;
 uniform sampler2D previous;
 
 uniform int mode;
 uniform vec2 location;
 uniform float radius;
 
-vec4 decode(sampler2D tex, vec2 delta) {
-    vec4 value = texture2D(tex, (gl_FragCoord.xy + delta) / size);
-    value -= vec4(0.5, 0.5, 0.5, 0.5);
-    value *= 2.0;
-    value.z *= 4.0;
-    return value;
-}
-
-vec4 encode(vec4 value) {
-    vec4 data = value;
-    data.z /= 4.0;
-    data /= 2.0;
-    data += vec4(0.5, 0.5, 0.5, 0.5);
-    return data;
-}
-
 void main() {
-    vec4 center = decode(previous, vec2(0.0, 0.0));
-    vec2 advection = decode(previous, -center.xy).xy;
-    vec2 pressure = vec2(
-        decode(previous, vec2(-1.0, 0.0)).z - decode(previous, vec2(1.0, 0.0)).z,
-        decode(previous, vec2(0.0, -1.0)).z - decode(previous, vec2(0.0, 1.0)).z
-    ) / 2.0;
+
+    // Get neighbourhood
+    vec2 size = textureSize(previous, 0);
+    vec4 center = texture2D(previous, gl_FragCoord.xy / size);
+    vec4 top    = texture2D(previous, (gl_FragCoord.xy + vec2( 0.0,  1.0)) / size);
+    vec4 bottom = texture2D(previous, (gl_FragCoord.xy + vec2( 0.0, -1.0)) / size);
+    vec4 left   = texture2D(previous, (gl_FragCoord.xy + vec2(-1.0,  0.0)) / size);
+    vec4 right  = texture2D(previous, (gl_FragCoord.xy + vec2( 1.0,  0.0)) / size);
+
+    // Compute advection effect
+    vec2 advection = texture2D(previous, (gl_FragCoord.xy - center.xy) / size).xy;
+
+    // Compute pressure effect
+    vec2 pressure = vec2(left.z - right.z, bottom.z - top.z) / 2.0;
+
+    // Compute force effect
     vec2 force = vec2(0.0, 0.0);
     if (mode > 0) {
         float distance = length(gl_FragCoord.xy - location);
@@ -44,5 +37,7 @@ void main() {
                 center.w = 2.0;
         }
     }
-    next = encode(vec4(advection + pressure + force, center.zw));
+
+    // Save result
+    next = vec4(advection + pressure + force, center.zw);
 }
