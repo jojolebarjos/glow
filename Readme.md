@@ -21,6 +21,7 @@
 * [Normal mapping](http://learnopengl.com/#!Advanced-Lighting/Normal-Mapping), but parallax mapping seems incompatible with shadow volumes
 * Somehow use deferred shading to optimize
 * Volumetric shadows or light shafts (see [this page](http://www.cse.chalmers.se/~d00sint/) and [this page](http://cwyman.appspot.com/papers.html) for more advanced papers)
+* Load font with [FreeType](https://www.freetype.org/) and generate glyphs
 
 ## Dependencies
 
@@ -31,3 +32,4 @@
 * [Bullet](https://github.com/bulletphysics/bullet3)
 * [OpenAL Soft](http://kcat.strangesoft.net/openal.html)
 * [libogg and libvorbis](https://xiph.org/downloads/)
+* [OpenVR](https://github.com/ValveSoftware/openvr)

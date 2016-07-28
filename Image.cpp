@@ -4,9 +4,11 @@
 #include <cstdio>
 #include <setjmp.h>
 
+#ifdef GLOW_JPEG
 extern "C" {
 #include <jpeglib.h>
 }
+#endif
 
 Image::Image() : width(0), height(0) {}
 
@@ -94,6 +96,8 @@ bool Image::loadPng(std::string const & path) {
     return false;
 }
 
+#ifdef GLOW_JPEG
+
 namespace {
 
 struct jpeg_error_struct {
@@ -169,3 +173,11 @@ bool Image::loadJpg(std::string const & path) {
     delete buffer;
     return true;
 }
+
+#else
+
+bool Image::loadJpg(std::string const & path) {
+    return false;
+}
+
+#endif

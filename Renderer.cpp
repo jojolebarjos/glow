@@ -2,14 +2,14 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 
-Renderer::Renderer(GLFWwindow * window) : window(window) {}
+Renderer::Renderer() {}
 
 Renderer::~Renderer() {
     for (Texture * texture : textures)
         delete texture;
 }
 
-bool Renderer::initialize() {
+bool Renderer::initialize(uint32_t width, uint32_t height) {
     // TODO handle errors
     
     // Load depth-only rendering shader
@@ -43,11 +43,6 @@ bool Renderer::initialize() {
     finalize_shader.addSourceFile(GL_FRAGMENT_SHADER, "Finalize.fs");
     finalize_shader.link();
     
-    // Prepare matrices
-    glfwGetFramebufferSize(window, &width, &height);
-    projection = glm::perspective(PI / 3.0f, (float)width / (float)height, 0.1f, 100.0f);
-    view = glm::lookAt(glm::vec3(-2.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    
     // Create render target
     render_color.createColor(width, height, true, 4);
     render_depthStencil.createDepthStencil(width, height, 4);
@@ -66,7 +61,7 @@ bool Renderer::initialize() {
     
     // Load "default" mesh 0 used for processing
     loadMesh("Square.obj");
-
+    
     return true;
 }
 
@@ -151,11 +146,7 @@ void Renderer::clear() {
     meshes.clear();
 }
 
-void Renderer::setView(glm::mat4 const & view) {
-    this->view = view;
-}
-
-void Renderer::render() {
+void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat4 const & view) {
     
     // Use the same vertex array for everything
     array.bind();
@@ -290,7 +281,6 @@ void Renderer::render() {
     finalize_shader.setUniform("texture", 0);
     // TODO set gamma uniform
     drawSquare();
-    
 }
 
 void Renderer::drawUntexturedObjects(Shader & shader) {

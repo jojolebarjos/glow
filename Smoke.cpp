@@ -3,7 +3,7 @@
 #include "Mesh.hpp"
 #include "Buffer.hpp"
 
-Smoke::Smoke(GLFWwindow * window) : window(window) {}
+Smoke::Smoke(Window * window) : window(window) {}
 
 bool Smoke::initialize() {
     // TODO check errors
@@ -33,8 +33,7 @@ bool Smoke::initialize() {
     array.addAttribute(1, 2, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
     
     // Get screen size
-    glfwGetFramebufferSize(window, &width, &height);
-    glm::vec2 size(width, height);
+    glm::vec2 size(window->getWidth(), window->getHeight());
     pass1.use();
     pass1.setUniform("size", size);
     pass2.use();
@@ -46,7 +45,7 @@ bool Smoke::initialize() {
     
     // Create textures
     for (int i = 0; i < 2; ++i) {
-        textures[i].createColor(width, height, true);
+        textures[i].createColor(window->getWidth(), window->getHeight(), true);
         textures[i].setInterpolation(true);
         textures[i].setBorder(false);
         framebuffers[i].bind();
@@ -69,12 +68,12 @@ void Smoke::update() {
     textures[1].bind(1);
 
     // Apply forces
-    int mode = glfwGetMouseButton(window, 0) == GLFW_PRESS ? 1 : glfwGetMouseButton(window, 1) == GLFW_PRESS ? 2 : 0;
+    int mode = glfwGetMouseButton(window->getHandle(), 0) == GLFW_PRESS ? 1 : glfwGetMouseButton(window->getHandle(), 1) == GLFW_PRESS ? 2 : 0;
     pass1.use();
     pass1.setUniform("mode", mode);
     double x, y;
-    glfwGetCursorPos(window, &x, &y);
-    pass1.setUniform("location", glm::vec2(x, height - y));
+    glfwGetCursorPos(window->getHandle(), &x, &y);
+    pass1.setUniform("location", glm::vec2(x, window->getHeight() - y));
     pass1.setUniform("radius", 16.0f);
     pass1.setUniform("previous", current);
     current ^= 1;
@@ -101,6 +100,6 @@ void Smoke::update() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render.use();
     render.setUniform("previous", current);
-    render.setUniform("mode", glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS ? 0 : 1);
+    render.setUniform("mode", glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS ? 0 : 1);
     glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
 }

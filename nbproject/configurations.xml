@@ -21,6 +21,7 @@
       <itemPath>Texture.hpp</itemPath>
       <itemPath>Value.hpp</itemPath>
       <itemPath>VertexArray.hpp</itemPath>
+      <itemPath>Window.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -67,6 +68,7 @@
       <itemPath>Texture.cpp</itemPath>
       <itemPath>Value.cpp</itemPath>
       <itemPath>VertexArray.cpp</itemPath>
+      <itemPath>Window.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -96,6 +98,7 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
+            <linkerOptionItem>-lopenvr_api</linkerOptionItem>
             <linkerOptionItem>-lOpenAL32.dll</linkerOptionItem>
             <linkerOptionItem>-lglfw3dll</linkerOptionItem>
             <linkerOptionItem>-lglew32</linkerOptionItem>
@@ -221,6 +224,10 @@
       <item path="VertexArray.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="VertexArray.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Window.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Window.hpp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -245,6 +252,7 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
+            <linkerOptionItem>-lopenvr_api</linkerOptionItem>
             <linkerOptionItem>-lOpenAL32.dll</linkerOptionItem>
             <linkerOptionItem>-lglfw3dll</linkerOptionItem>
             <linkerOptionItem>-lglew32</linkerOptionItem>
@@ -370,6 +378,10 @@
       <item path="VertexArray.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="VertexArray.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Window.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Window.hpp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

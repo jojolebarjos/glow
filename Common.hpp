@@ -2,6 +2,13 @@
 #ifndef GLOW_COMMON_HPP
 #define GLOW_COMMON_HPP
 
+#define GLOW_DEBUG_CONTEXT
+// TODO #define GLOW_OPENAL
+#define GLOW_OPENVR
+#define GLOW_JPEG
+#define GLOW_OGG_VORBIS
+// TODO #define GLOW_PNG_ZLIB
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 
@@ -44,6 +51,14 @@ std::ostream & operator<<(std::ostream & out, glm::tvec3<T> const & v) {
 template <typename T>
 std::ostream & operator<<(std::ostream & out, glm::tvec4<T> const & v) {
     return out << v.x << ',' << v.y << ',' << v.z << ',' << v.w;
+}
+
+template <typename T>
+std::ostream & operator<<(std::ostream & out, glm::tmat4x4<T> const & m) {
+    return out << m[0][0] << ',' << m[1][0] << ',' << m[2][0] << ',' << m[3][0] << std::endl
+               << m[0][1] << ',' << m[1][1] << ',' << m[2][1] << ',' << m[3][1] << std::endl
+               << m[0][2] << ',' << m[1][2] << ',' << m[2][2] << ',' << m[3][2] << std::endl
+               << m[0][3] << ',' << m[1][3] << ',' << m[2][3] << ',' << m[3][3] << std::endl;
 }
 
 inline char const * glGetFriendlyName(GLenum name) {

@@ -1,7 +1,8 @@
 
 #include "Scene.hpp"
+#include "Window.hpp"
 
-Scene::Scene(GLFWwindow * window) : window(window), renderer(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
+Scene::Scene(Window * window) : window(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
 
 Scene::~Scene() {
     while (!objects.empty())
@@ -16,14 +17,19 @@ Scene::~Scene() {
 bool Scene::initialize() {
     // TODO handle errors
     
-    // Get screen size
-    glfwGetFramebufferSize(window, &width, &height);
-    
     // Initialize time
     time = 0;
     
     // Prepare renderer
-    renderer.initialize();
+    uint32_t width, height;
+    if (window->hasStereoscopy()) {
+        width = window->getEyeWidth();
+        height = window->getEyeHeight();
+    } else {
+        width = window->getWidth();
+        height = window->getHeight();
+    }
+    renderer.initialize(width, height);
     renderer.loadImage("Test.bmp");
     renderer.loadMesh("Cube.obj");
     renderer.pack();
@@ -59,7 +65,7 @@ void Scene::update() {
     
     // Add cube if requested
     static bool just = false;
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
+    if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
         addCube({5, 0, 5});
         Source * source = listener.addSource(sound);
         source->setPosition({5, 0, 0});
@@ -67,7 +73,7 @@ void Scene::update() {
         source->release();
         just = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+    if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_RELEASE)
         just = false;
     
     // Simulate world
@@ -78,7 +84,6 @@ void Scene::update() {
     glm::vec3 target(0.0f, 0.0f, 0.0f);
     glm::vec3 up(0.0f, 0.0f, 1.0f);
     glm::mat4 view = glm::lookAt(position, target, up);
-    renderer.setView(view);
     
     // Define render objects
     renderer.clear();
@@ -90,7 +95,13 @@ void Scene::update() {
     }
     
     // Draw everything
-    renderer.render();
+    if (window->hasStereoscopy()) {
+        for (unsigned int i = 0; i < 2; ++i)
+            renderer.render(window->getEyeFramebuffer(i)->getHandle(), window->getEyeProjection(i), window->getEyeView(i));
+    } else {
+        glm::mat4 projection = glm::perspective(PI / 3.0f, (float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f);
+        renderer.render(0, projection, view);
+    }
     
     // Update audio
     listener.setPosition(position);

@@ -6,11 +6,12 @@
 #include "Renderer.hpp"
 #include "Listener.hpp"
 #include "Source.hpp"
+#include "Window.hpp"
 
 class Scene {
 public:
     
-    Scene(GLFWwindow * window);
+    Scene(Window * window);
     ~Scene();
     
     Scene(Scene const &) = delete;
@@ -21,7 +22,7 @@ public:
     
 private:
 
-    GLFWwindow * window;
+    Window * window;
     int width;
     int height;
     

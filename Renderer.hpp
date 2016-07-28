@@ -10,6 +10,7 @@
 #include "VertexArray.hpp"
 #include "Shader.hpp"
 #include "Framebuffer.hpp"
+#include "Window.hpp"
 
 class Renderer {
 public:
@@ -29,13 +30,13 @@ public:
         // TODO light, normal, material...
     };
     
-    Renderer(GLFWwindow * window);
+    Renderer();
     ~Renderer();
     
     Renderer(Renderer const &) = delete;
     Renderer & operator=(Renderer const &) = delete;
     
-    bool initialize();
+    bool initialize(uint32_t width, uint32_t height);
     
     GLuint loadMesh(std::string const & path);
     
@@ -49,9 +50,7 @@ public:
     
     void clear();
     
-    void setView(glm::mat4 const & view);
-    
-    void render();
+    void render(GLuint framebuffer, glm::mat4 const & projection, glm::mat4 const & view);
     
 private:
     
@@ -60,10 +59,9 @@ private:
     void drawTexturedObjects(Shader & shader);
     void drawSquare();
     
-    GLFWwindow * window;
-    int width;
-    int height;
-
+    uint32_t width;
+    uint32_t height;
+    
     // TODO maybe this mapping should not be done here?
     std::map<std::string, GLuint> meshNames;
     std::map<std::string, GLuint> imageNames;

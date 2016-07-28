@@ -3,28 +3,27 @@
 #define GLOW_SMOKE_HPP
 
 #include "Common.hpp"
-#include "Texture.hpp"
-#include "Framebuffer.hpp"
-#include "Shader.hpp"
-#include "VertexArray.hpp"
-#include "Mesh.hpp"
 #include "Buffer.hpp"
+#include "Framebuffer.hpp"
+#include "Mesh.hpp"
+#include "Shader.hpp"
+#include "Texture.hpp"
+#include "VertexArray.hpp"
+#include "Window.hpp"
 
 class Smoke {
 public:
     
     // TODO need to clean the shaders :3
     
-    Smoke(GLFWwindow * window);
+    Smoke(Window * window);
     
     bool initialize();
     void update();
     
 private:
     
-    GLFWwindow * window;
-    int width;
-    int height;
+    Window * window;
 
     Shader pass1;
     Shader pass2;

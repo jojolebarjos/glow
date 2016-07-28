@@ -5,8 +5,10 @@
 #include <cstdio>
 #include <cstring>
 
+#ifdef GLOW_OGG_VORBIS
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
+#endif
 
 Sampler::Sampler() : reader(nullptr) {}
 
@@ -177,7 +179,8 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
     // https://xiph.org/vorbis/doc/vorbisfile/example.html
     // http://www.gamedev.net/page/resources/_/technical/game-programming/introduction-to-ogg-vorbis-r2031
     // https://xiph.org/vorbis/doc/vorbisfile/reference.html
-    
+
+#ifdef GLOW_OGG_VORBIS    
     struct OggReader : Reader {
         FILE * file;
         OggVorbis_File vorbis;
@@ -238,6 +241,7 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
     if (reader->file)
         return reader;
     delete reader;
+#endif
     return nullptr;
 }
 
