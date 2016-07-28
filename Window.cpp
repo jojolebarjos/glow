@@ -177,6 +177,24 @@ uint32_t Window::getHeight() const {
     return height;
 }
 
+bool Window::hasFocus() const {
+    return glfwGetWindowAttrib(window, GLFW_FOCUSED) == GLFW_TRUE;
+}
+
+bool Window::isMouseButtonDown(uint32_t index) const {
+    return glfwGetMouseButton(window, index) == GLFW_PRESS;
+}
+
+glm::vec2 Window::getMouseLocation() const {
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    return {x, height - y};
+}
+
+bool Window::isKeyboardButtonDown(uint32_t id) const {
+    return glfwGetKey(window, id) == GLFW_PRESS;
+}
+
 bool Window::hasStereoscopy() const {
 #ifdef GLOW_OPENVR
     return hmd;

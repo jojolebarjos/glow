@@ -67,7 +67,7 @@ void Scene::update() {
     
     // Add cube if requested
     static bool just = false;
-    if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS && !just) {
+    if (window->isKeyboardButtonDown(GLFW_KEY_SPACE) && !just) {
         addCube({5, 0, 5});
         if (sound) {
             Source * source = listener.addSource(sound);
@@ -77,7 +77,7 @@ void Scene::update() {
         }
         just = true;
     }
-    if (glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_RELEASE)
+    if (!window->isKeyboardButtonDown(GLFW_KEY_SPACE))
         just = false;
     
     // Simulate world

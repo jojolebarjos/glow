@@ -7,7 +7,6 @@
 ## ToDo list
 
 * Provide CMakeLists and test on other platforms
-* PNG support (requires [lipng](http://www.libpng.org/pub/png/libpng.html) and [zlib](http://www.zlib.net/))
 * Sound stream using circular buffers
 * Audio source priorities, to avoid hard limitation and release some CPU usage
 * Reduce audio update frequency to release some CPU usage
@@ -28,6 +27,8 @@
 * [GLEW](http://glew.sourceforge.net/)
 * [GLM](http://glm.g-truc.net/)
 * [GLFW 3](http://www.glfw.org/)
+* [lipng](http://www.libpng.org/pub/png/libpng.html)
+* [zlib](http://www.zlib.net/))
 * [libjpeg](http://libjpeg.sourceforge.net/)
 * [Bullet](https://github.com/bulletphysics/bullet3)
 * [OpenAL Soft](http://kcat.strangesoft.net/openal.html)

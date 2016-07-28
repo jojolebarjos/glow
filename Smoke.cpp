@@ -68,12 +68,10 @@ void Smoke::update() {
     textures[1].bind(1);
 
     // Apply forces
-    int mode = glfwGetMouseButton(window->getHandle(), 0) == GLFW_PRESS ? 1 : glfwGetMouseButton(window->getHandle(), 1) == GLFW_PRESS ? 2 : 0;
+    int mode = window->isMouseButtonDown(0) ? 1 : window->isMouseButtonDown(1) ? 2 : 0;
     pass1.use();
     pass1.setUniform("mode", mode);
-    double x, y;
-    glfwGetCursorPos(window->getHandle(), &x, &y);
-    pass1.setUniform("location", glm::vec2(x, window->getHeight() - y));
+    pass1.setUniform("location", window->getMouseLocation());
     pass1.setUniform("radius", 16.0f);
     pass1.setUniform("previous", current);
     current ^= 1;
@@ -100,6 +98,6 @@ void Smoke::update() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     render.use();
     render.setUniform("previous", current);
-    render.setUniform("mode", glfwGetKey(window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS ? 0 : 1);
+    render.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
     glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
 }

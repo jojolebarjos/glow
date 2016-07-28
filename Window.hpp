@@ -26,8 +26,18 @@ public:
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     
-    // TODO mouse
-    // TODO keyboard
+    // TODO distinguish whether a button was just pressed/released (i.e. changed from last frame)
+    
+    bool hasFocus() const;
+    
+    bool isMouseButtonDown(uint32_t index) const;
+    // TODO mouse scroll
+    glm::vec2 getMouseLocation() const;
+    // TODO mouse capture?
+    
+    bool isKeyboardButtonDown(uint32_t id) const;
+    // TODO text input? clipboard?
+    
     // TODO gamepad
     
     bool hasStereoscopy() const;
