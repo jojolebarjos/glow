@@ -107,17 +107,28 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Screen framebuffer has size " << w << "x" << h << std::endl;
     
+    // Initialize time
+    time = 0.0;
+    glfwSetTime(0.0);
+    dt = 0.01;
+    
+    // Initialize mouse and keyboard
+    current = 0;
+    for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i) {
+        mouse_button[0][i] = GLFW_RELEASE;
+        mouse_button[1][i] = GLFW_RELEASE;
+    }
+    for (int i = 0; i <= GLFW_KEY_LAST; ++i) {
+        keyboard_button[0][i] = GLFW_RELEASE;
+        keyboard_button[1][i] = GLFW_RELEASE;
+    }
+    
     // Initialize gamepads
     for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {
         gamepad[i].connected = false;
         gamepad[i].axis_count = 0;
         gamepad[i].button_count = 0;
     }
-    
-    // Initialize time
-    time = 0.0;
-    glfwSetTime(0.0);
-    dt = 0.01;
     
 #ifdef GLOW_OPENVR
     
@@ -229,7 +240,15 @@ bool Window::hasFocus() const {
 }
 
 bool Window::isMouseButtonDown(uint32_t index) const {
-    return glfwGetMouseButton(window, index) == GLFW_PRESS;
+    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current][index] == GLFW_PRESS : false;
+}
+
+bool Window::isMouseButtonPressed(uint32_t index) const {
+    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current ^ 1][index] == GLFW_RELEASE && mouse_button[current][index] == GLFW_PRESS : false;
+}
+
+bool Window::isMouseButtonReleased(uint32_t index) const {
+    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current ^ 1][index] == GLFW_PRESS && mouse_button[current][index] == GLFW_RELEASE : false;
 }
 
 glm::vec2 Window::getMouseLocation() const {
@@ -238,8 +257,16 @@ glm::vec2 Window::getMouseLocation() const {
     return {x, height - y};
 }
 
-bool Window::isKeyboardButtonDown(uint32_t id) const {
-    return glfwGetKey(window, id) == GLFW_PRESS;
+bool Window::isKeyboardButtonDown(uint32_t index) const {
+    return index <= GLFW_KEY_LAST ? keyboard_button[current][index] == GLFW_PRESS : false;
+}
+
+bool Window::isKeyboardButtonPressed(uint32_t index) const {
+    return index <= GLFW_KEY_LAST ? keyboard_button[current ^ 1][index] == GLFW_RELEASE && keyboard_button[current][index] == GLFW_PRESS : false;
+}
+
+bool Window::isKeyboardButtonReleased(uint32_t index) const {
+    return index <= GLFW_KEY_LAST ? keyboard_button[current ^ 1][index] == GLFW_PRESS && keyboard_button[current][index] == GLFW_RELEASE : false;
 }
 
 bool Window::isGamepadConnected(uint32_t index) const {
@@ -373,6 +400,13 @@ bool Window::update() {
     // Update input and buffers
     glfwPollEvents();
     glfwSwapBuffers(window);
+    
+    // Update mouse and keyboard
+    current ^= 1;
+    for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i)
+        mouse_button[current][i] = glfwGetMouseButton(window, i);
+    for (int i = 0; i <= GLFW_KEY_LAST; ++i)
+        keyboard_button[current][i] = glfwGetKey(window, i);
     
     // Update gamepads
     for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {

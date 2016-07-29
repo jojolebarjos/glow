@@ -30,19 +30,21 @@ public:
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     
-    // TODO distinguish whether a button was just pressed/released (i.e. changed from last frame)
-    
     float getTime() const;
     float getDeltaTime() const;
     
     bool hasFocus() const;
     
     bool isMouseButtonDown(uint32_t index) const;
+    bool isMouseButtonPressed(uint32_t index) const;
+    bool isMouseButtonReleased(uint32_t index) const;
     // TODO mouse scroll
     glm::vec2 getMouseLocation() const;
     // TODO mouse capture?
     
-    bool isKeyboardButtonDown(uint32_t id) const;
+    bool isKeyboardButtonDown(uint32_t index) const;
+    bool isKeyboardButtonPressed(uint32_t index) const;
+    bool isKeyboardButtonReleased(uint32_t index) const;
     // TODO text input? clipboard?
     
     bool isGamepadConnected(uint32_t index) const;
@@ -70,6 +72,10 @@ private:
     
     double time;
     double dt;
+    
+    int current;
+    char mouse_button[2][GLFW_MOUSE_BUTTON_LAST + 1];
+    char keyboard_button[2][GLFW_KEY_LAST + 1];
     
     struct Gamepad {
         bool connected;

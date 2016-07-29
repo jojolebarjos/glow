@@ -68,7 +68,7 @@ void Smoke::update() {
         last_mouse = new_mouse;
         average_delta = average_delta * 0.9f + delta * 0.1f / window->getDeltaTime();
     }
-    int mode = window->isMouseButtonDown(0) ? 1 : window->isMouseButtonDown(1) ? 2 : 0;
+    int mode = window->isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) ? 1 : window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT) ? 2 : 0;
     
     // Apply forces
     pass1.use();

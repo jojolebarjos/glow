@@ -66,8 +66,7 @@ void Scene::update() {
     time = now;
     
     // Add cube if requested
-    static bool just = false;
-    if (window->isKeyboardButtonDown(GLFW_KEY_SPACE) && !just) {
+    if (window->isKeyboardButtonPressed(GLFW_KEY_SPACE)) {
         addCube({5, 0, 5});
         if (sound) {
             Source * source = listener.addSource(sound);
@@ -75,10 +74,7 @@ void Scene::update() {
             source->play();
             source->release();
         }
-        just = true;
     }
-    if (!window->isKeyboardButtonDown(GLFW_KEY_SPACE))
-        just = false;
     
     // Simulate world
     world->stepSimulation(delta, 10);
