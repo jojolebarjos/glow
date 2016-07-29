@@ -45,7 +45,11 @@ public:
     bool isKeyboardButtonDown(uint32_t id) const;
     // TODO text input? clipboard?
     
-    // TODO gamepad
+    bool isGamepadConnected(uint32_t index) const;
+    uint32_t getGamepadAxisCount(uint32_t index) const;
+    float getGamepadAxis(uint32_t index, uint32_t axis_index) const;
+    uint32_t getGamepadButtonCount(uint32_t index) const;
+    bool isGamepadButtonDown(uint32_t index, uint32_t button_index) const;
     
     bool hasStereoscopy() const;
     uint32_t getEyeWidth() const;
@@ -66,6 +70,15 @@ private:
     
     double time;
     double dt;
+    
+    struct Gamepad {
+        bool connected;
+        uint32_t axis_count;
+        float axis[16];
+        uint32_t button_count;
+        bool button[16];
+    };
+    Gamepad gamepad[4];
     
 #ifdef GLOW_OPENVR
     

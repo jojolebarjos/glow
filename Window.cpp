@@ -107,6 +107,18 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Screen framebuffer has size " << w << "x" << h << std::endl;
     
+    // Initialize gamepads
+    for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {
+        gamepad[i].connected = false;
+        gamepad[i].axis_count = 0;
+        gamepad[i].button_count = 0;
+    }
+    
+    // Initialize time
+    time = 0.0;
+    glfwSetTime(0.0);
+    dt = 0.01;
+    
 #ifdef GLOW_OPENVR
     
     // TODO check if VR is disabled in config
@@ -189,11 +201,6 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     }
     
 #endif
-    
-    // Initialize time
-    time = 0.0;
-    glfwSetTime(0.0);
-    dt = 0.01;
     return true;
 }
 
@@ -233,6 +240,26 @@ glm::vec2 Window::getMouseLocation() const {
 
 bool Window::isKeyboardButtonDown(uint32_t id) const {
     return glfwGetKey(window, id) == GLFW_PRESS;
+}
+
+bool Window::isGamepadConnected(uint32_t index) const {
+    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].connected : false;
+}
+
+uint32_t Window::getGamepadAxisCount(uint32_t index) const {
+    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].axis_count : 0;
+}
+
+float Window::getGamepadAxis(uint32_t index, uint32_t axis_index) const {
+    return index < sizeof(gamepad) / sizeof(Gamepad) && axis_index < gamepad[index].axis_count ? gamepad[index].axis[axis_index] : 0.0f;
+}
+
+uint32_t Window::getGamepadButtonCount(uint32_t index) const {
+    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].button_count : 0;
+}
+
+bool Window::isGamepadButtonDown(uint32_t index, uint32_t button_index) const {
+    return index < sizeof(gamepad) / sizeof(Gamepad) && button_index < gamepad[index].button_count ? gamepad[index].button[button_index] : false;
 }
 
 bool Window::hasStereoscopy() const {
@@ -346,6 +373,26 @@ bool Window::update() {
     // Update input and buffers
     glfwPollEvents();
     glfwSwapBuffers(window);
+    
+    // Update gamepads
+    for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {
+        bool connected = glfwJoystickPresent(GLFW_JOYSTICK_1 + i);
+        if (connected) {
+            if (!gamepad[i].connected)
+                std::cout << "Gamepad " << i << " connected" << std::endl;
+            int count;
+            float const * axis = glfwGetJoystickAxes(i, &count);
+            gamepad[i].axis_count = glm::max((unsigned)count, sizeof(gamepad[i].axis) / sizeof(gamepad[i].axis[0]));
+            for (uint32_t j = 0; j < gamepad[i].axis_count; ++j)
+                gamepad[i].axis[j] = axis[j];
+            unsigned char const * button = glfwGetJoystickButtons(i, &count);
+            gamepad[i].button_count = glm::max((unsigned)count, sizeof(gamepad[i].button) / sizeof(gamepad[i].button[0]));
+            for (uint32_t j = 0; j < gamepad[i].button_count; ++j)
+                gamepad[i].button[j] = button[j] == GLFW_PRESS;
+        } else if (gamepad[i].connected)
+            std::cout << "Gamepad " << i << " disconnected" << std::endl;
+        gamepad[i].connected = connected;
+    }
     
     // Update time
     double now = glfwGetTime();
