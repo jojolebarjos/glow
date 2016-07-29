@@ -189,6 +189,11 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     }
     
 #endif
+    
+    // Initialize time
+    time = 0.0;
+    glfwSetTime(0.0);
+    dt = 0.01;
     return true;
 }
 
@@ -202,6 +207,14 @@ uint32_t Window::getWidth() const {
 
 uint32_t Window::getHeight() const {
     return height;
+}
+
+float Window::getTime() const {
+    return time;
+}
+
+float Window::getDeltaTime() const {
+    return dt;
 }
 
 bool Window::hasFocus() const {
@@ -333,6 +346,11 @@ bool Window::update() {
     // Update input and buffers
     glfwPollEvents();
     glfwSwapBuffers(window);
+    
+    // Update time
+    double now = glfwGetTime();
+    dt = now - time;
+    time = now;
     
     // Check if user want to quit
     return !glfwWindowShouldClose(window);

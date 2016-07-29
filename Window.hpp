@@ -32,6 +32,9 @@ public:
     
     // TODO distinguish whether a button was just pressed/released (i.e. changed from last frame)
     
+    float getTime() const;
+    float getDeltaTime() const;
+    
     bool hasFocus() const;
     
     bool isMouseButtonDown(uint32_t index) const;
@@ -60,6 +63,9 @@ private:
     GLFWwindow * window;
     uint32_t width;
     uint32_t height;
+    
+    double time;
+    double dt;
     
 #ifdef GLOW_OPENVR
     
