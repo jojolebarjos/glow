@@ -521,7 +521,7 @@ glm::mat4 Window::toGlm(vr::HmdMatrix34_t const & matrix) const {
         matrix.m[0][0], matrix.m[1][0], matrix.m[2][0], 0.0f,
         matrix.m[0][1], matrix.m[1][1], matrix.m[2][1], 0.0f,
         matrix.m[0][2], matrix.m[1][2], matrix.m[2][2], 0.0f,
-        matrix.m[0][3], matrix.m[1][3], matrix.m[2][3], 1.0f,
+        matrix.m[0][3], matrix.m[1][3], matrix.m[2][3], 1.0f
     );
 }
 
@@ -535,7 +535,7 @@ glm::mat4 Window::toGlm(vr::HmdMatrix44_t const & matrix) const {
 }
 
 glm::vec3 Window::toGlm(vr::HmdVector3_t const & vector) const {
-    return {vector.v[0], vector.v[1], vector.v[2]};
+    return glm::vec3(vector.v[0], vector.v[1], vector.v[2]);
 }
 
 #endif
