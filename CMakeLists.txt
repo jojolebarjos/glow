@@ -30,7 +30,7 @@ endif()
 
 find_package(GLEW REQUIRED)
 if (GLEW_FOUND)
-    target_include_directories (glow PUBLIC ${GLEW_INCLUDE_DIRS})
+	target_include_directories (glow PUBLIC ${GLEW_INCLUDE_DIRS})
 	target_link_libraries(glow ${GLEW_LIBRARIES})
 endif()
 

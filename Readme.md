@@ -6,7 +6,7 @@
 
 ## ToDo list
 
-* Provide CMakeLists and test on other platforms
+* Test CMakeLists and test on other platforms
 * Sound stream using circular buffers
 * Audio source priorities, to avoid hard limitation and release some CPU usage
 * Reduce audio update frequency to release some CPU usage
