@@ -4,11 +4,11 @@
 #include <cstdio>
 #include <setjmp.h>
 
-#ifdef GLOW_PNG_ZLIB
+#ifndef GLOW_NO_PNG_ZLIB
 #include <png.h>
 #endif
 
-#ifdef GLOW_JPEG
+#ifndef GLOW_NO_JPEG
 extern "C" {
 #include <jpeglib.h>
 }
@@ -95,7 +95,7 @@ bool Image::loadBmp(std::string const & path) {
     return true;
 }
 
-#ifdef GLOW_PNG_ZLIB
+#ifndef GLOW_NO_PNG_ZLIB
 
 bool Image::loadPng(std::string const & path) {
     // https://gist.github.com/niw/5963798
@@ -185,7 +185,7 @@ bool Image::loadPng(std::string const & path) {
 
 #endif
 
-#ifdef GLOW_JPEG
+#ifndef GLOW_NO_JPEG
 
 namespace {
 

@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstring>
 
-#ifdef GLOW_OGG_VORBIS
+#ifndef GLOW_NO_OGG_VORBIS
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 #endif
@@ -34,7 +34,7 @@ bool Sampler::loadOgg(std::string const & path, Conversion conversion) {
 }
 
 int Sampler::getFormat() const {
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
     if (!reader)
         return AL_NONE;
     if (reader->channels == 2)
@@ -184,7 +184,7 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
     // http://www.gamedev.net/page/resources/_/technical/game-programming/introduction-to-ogg-vorbis-r2031
     // https://xiph.org/vorbis/doc/vorbisfile/reference.html
 
-#ifdef GLOW_OGG_VORBIS    
+#ifndef GLOW_NO_OGG_VORBIS
     struct OggReader : Reader {
         FILE * file;
         OggVorbis_File vorbis;

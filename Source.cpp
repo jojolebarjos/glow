@@ -1,7 +1,7 @@
 
 #include "Source.hpp"
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
 
 void Source::setPosition(glm::vec3 const & position) {
     this->position = position;

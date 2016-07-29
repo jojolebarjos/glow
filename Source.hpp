@@ -34,7 +34,7 @@ private:
     Source(Listener * listener);
     ~Source() = default;
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
     
     Listener * listener;
     std::list<Source *>::iterator iterator;

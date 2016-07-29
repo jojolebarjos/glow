@@ -2,25 +2,23 @@
 #include "Window.hpp"
 #include "Listener.hpp"
 
-#ifdef GLOW_PNG_ZLIB
+#ifndef GLOW_NO_PNG_ZLIB
 #include <png.h>
 #endif
 
-#ifdef GLOW_JPEG
+#ifndef GLOW_NO_JPEG
 extern "C" {
 #include <jpeglib.h>
 }
 #endif
 
-#ifdef GLOW_DEBUG_CONTEXT
-static void APIENTRY debug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const * message, void const * userParam) {
+static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const * message, void const * userParam) {
     std::cout << glGetFriendlyName(source) << ':' << glGetFriendlyName(type) << ':' << glGetFriendlyName(severity) << ' ' << message << std::endl;
 }
-#endif
 
 Window::Window() {
     window = nullptr;
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     hmd = nullptr;
     eye_width = 0;
     eye_height = 0;
@@ -35,7 +33,7 @@ Window::Window() {
 }
 
 Window::~Window() {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (hmd) {
         vr::VR_Shutdown();
         delete eye_framebuffer[0];
@@ -53,19 +51,19 @@ Window::~Window() {
     }
 }
 
-bool Window::initialize(uint32_t width, uint32_t height) {
+bool Window::initialize(uint32_t width, uint32_t height, bool debug) {
     // TODO check if GLFW is already initialized
     
     // Print libraries infos
     std::cout << "GLFW: " << glfwGetVersionString() << std::endl;
     std::cout << "GLEW: " << glewGetString(GLEW_VERSION) << std::endl;
     std::cout << "GLM: " << GLM_VERSION_MAJOR << '.' << GLM_VERSION_MINOR << '.' << GLM_VERSION_PATCH << '.' << GLM_VERSION_REVISION << std::endl;
-#ifdef GLOW_JPEG
+#ifndef GLOW_NO_JPEG
     std::cout << "libjpeg: " << (JPEG_LIB_VERSION / 10) << (char)(JPEG_LIB_VERSION % 10 + 'a' - 1) << std::endl;
 #else
     std::cout << "libjpeg: <none>" << std::endl;
 #endif
-#ifdef GLOW_PNG_ZLIB
+#ifndef GLOW_PNG_NO_ZLIB
     std::cout << "libpng: " << PNG_LIBPNG_VER_MAJOR << '.' << PNG_LIBPNG_VER_MINOR << '.' << PNG_LIBPNG_VER_RELEASE << std::endl;
 #else
     std::cout << "libpng: <none>" << std::endl;
@@ -79,10 +77,9 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     }
     
     // Create window
-#ifdef GLOW_DEBUG_CONTEXT
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-#endif
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    if (debug)
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+    glfwWindowHint(GLFW_RESIZABLE, 0);
     window = glfwCreateWindow(width, height, "Glow", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
@@ -102,12 +99,12 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     }
     
     // Enable OpenGL debugging
-#ifdef GLOW_DEBUG_CONTEXT
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(debug, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
+    if (debug) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(debugCallback, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    }
     
     // Get default framebuffer size
     int w, h;
@@ -143,7 +140,7 @@ bool Window::initialize(uint32_t width, uint32_t height) {
         gamepad[i].button_count = 0;
     }
     
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     
     // TODO check if VR is disabled in config
     
@@ -251,7 +248,7 @@ float Window::getDeltaTime() const {
 }
 
 bool Window::hasFocus() const {
-    return glfwGetWindowAttrib(window, GLFW_FOCUSED) == GLFW_TRUE;
+    return glfwGetWindowAttrib(window, GLFW_FOCUSED);
 }
 
 bool Window::isMouseButtonDown(uint32_t index) const {
@@ -305,7 +302,7 @@ bool Window::isGamepadButtonDown(uint32_t index, uint32_t button_index) const {
 }
 
 bool Window::hasStereoscopy() const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     return hmd;
 #else
     return false;
@@ -313,7 +310,7 @@ bool Window::hasStereoscopy() const {
 }
 
 uint32_t Window::getEyeWidth() const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     return eye_width;
 #else
     return 0;
@@ -321,7 +318,7 @@ uint32_t Window::getEyeWidth() const {
 }
 
 uint32_t Window::getEyeHeight() const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     return eye_height;
 #else
     return 0;
@@ -329,7 +326,7 @@ uint32_t Window::getEyeHeight() const {
 }
 
 Framebuffer * Window::getEyeFramebuffer(unsigned int index) {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < 2)
         return eye_framebuffer[index];
 #endif
@@ -337,7 +334,7 @@ Framebuffer * Window::getEyeFramebuffer(unsigned int index) {
 }
 
 glm::mat4 Window::getEyeProjection(unsigned int index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < 2)
         return eye_projection[index];
 #endif
@@ -345,7 +342,7 @@ glm::mat4 Window::getEyeProjection(unsigned int index) const {
 }
 
 glm::mat4 Window::getEyeView(unsigned int index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < 2)
         return eye_view[index];
 #endif
@@ -353,7 +350,7 @@ glm::mat4 Window::getEyeView(unsigned int index) const {
 }
 
 bool Window::isDeviceConnected(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_type[index] != vr::TrackedDeviceClass_Invalid;
 #endif
@@ -361,7 +358,7 @@ bool Window::isDeviceConnected(uint32_t index) const {
 }
 
 bool Window::isDeviceHead(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_type[index] == vr::TrackedDeviceClass_HMD;
 #endif
@@ -369,7 +366,7 @@ bool Window::isDeviceHead(uint32_t index) const {
 }
 
 bool Window::isDeviceController(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_type[index] == vr::TrackedDeviceClass_Controller;
 #endif
@@ -377,7 +374,7 @@ bool Window::isDeviceController(uint32_t index) const {
 }
 
 bool Window::isDeviceReference(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_type[index] == vr::TrackedDeviceClass_TrackingReference;
 #endif
@@ -385,7 +382,7 @@ bool Window::isDeviceReference(uint32_t index) const {
 }
 
 glm::mat4 Window::getDeviceTransform(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_transform[index];
 #endif
@@ -393,7 +390,7 @@ glm::mat4 Window::getDeviceTransform(uint32_t index) const {
 }
 
 glm::vec3 Window::getDeviceVelocity(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_velocity[index];
 #endif
@@ -401,7 +398,7 @@ glm::vec3 Window::getDeviceVelocity(uint32_t index) const {
 }
 
 glm::vec3 Window::getDeviceAngularVelocity(uint32_t index) const {
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
         return device_angularVelocity[index];
 #endif
@@ -415,7 +412,7 @@ bool Window::update() {
         return false;
     
     // Update VR
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     if (hmd) {
         vr::IVRCompositor * compositor = vr::VRCompositor();
         
@@ -527,7 +524,7 @@ bool Window::update() {
     return !glfwWindowShouldClose(window);
 }
 
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
 
 glm::mat4 Window::toGlm(vr::HmdMatrix34_t const & matrix) const {
     return glm::mat4(

@@ -2,13 +2,6 @@
 #ifndef GLOW_COMMON_HPP
 #define GLOW_COMMON_HPP
 
-//#define GLOW_DEBUG_CONTEXT
-//#define GLOW_PNG_ZLIB
-//#define GLOW_JPEG
-//#define GLOW_OPENAL
-//#define GLOW_OGG_VORBIS
-//#define GLOW_OPENVR
-
 #define GLEW_STATIC
 #include <GL/glew.h>
 
@@ -21,7 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/efx.h>

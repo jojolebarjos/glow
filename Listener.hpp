@@ -82,7 +82,7 @@ public:
     
 private:
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
     
     ALCdevice * device;
     ALCcontext * context;

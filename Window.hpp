@@ -10,7 +10,7 @@
 #include "VertexArray.hpp"
 #include "Mesh.hpp"
 
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
 // See tunabrain's workaround for MinGW: https://github.com/ValveSoftware/openvr/issues/133
 #include <openvr_mingw.hpp>
 #endif
@@ -24,7 +24,7 @@ public:
     Window(Window const &) = delete;
     Window & operator=(Window const &) = delete;
     
-    bool initialize(uint32_t width, uint32_t height);
+    bool initialize(uint32_t width, uint32_t height, bool debug = false);
     
     GLFWwindow * getHandle() const;
     uint32_t getWidth() const;
@@ -94,7 +94,7 @@ private:
     };
     Gamepad gamepad[4];
     
-#ifdef GLOW_OPENVR
+#ifndef GLOW_NO_OPENVR
     
     vr::IVRSystem * hmd;
     

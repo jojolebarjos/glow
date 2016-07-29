@@ -2,7 +2,7 @@
 #include "Sound.hpp"
 #include "Source.hpp"
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
 
 Sound::Sound(Sampler * sampler) {
     

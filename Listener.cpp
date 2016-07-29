@@ -3,7 +3,7 @@
 #include "Source.hpp"
 #include "Sound.hpp"
 
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
 
 Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
 

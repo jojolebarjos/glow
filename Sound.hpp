@@ -25,7 +25,7 @@ private:
     // TODO streaming sampler constructor
     ~Sound();
     
-#ifdef GLOW_OPENAL
+#ifndef GLOW_NO_OPENAL
     
     ALuint handle;
     
