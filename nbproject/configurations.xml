@@ -96,6 +96,14 @@
       <compileType>
         <ccTool>
           <standard>8</standard>
+          <preprocessorList>
+            <Elem>GLOW_DEBUG_CONTEXT</Elem>
+            <Elem>GLOW_JPEG</Elem>
+            <Elem>GLOW_OGG_VORBIS</Elem>
+            <Elem>GLOW_OPENAL</Elem>
+            <Elem>GLOW_OPENVR</Elem>
+            <Elem>GLOW_PNG_ZLIB</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <linkerTool>
@@ -105,8 +113,6 @@
             <linkerOptionItem>-lglfw3dll</linkerOptionItem>
             <linkerOptionItem>-lglew32</linkerOptionItem>
             <linkerOptionItem>-lopengl32</linkerOptionItem>
-            <linkerOptionItem>-lglu32</linkerOptionItem>
-            <linkerOptionItem>-lgdi32</linkerOptionItem>
             <linkerOptionItem>-lpng16</linkerOptionItem>
             <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
@@ -251,6 +257,13 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <standard>8</standard>
+          <preprocessorList>
+            <Elem>GLOW_JPEG</Elem>
+            <Elem>GLOW_OGG_VORBIS</Elem>
+            <Elem>GLOW_OPENAL</Elem>
+            <Elem>GLOW_OPENVR</Elem>
+            <Elem>GLOW_PNG_ZLIB</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -265,8 +278,7 @@
             <linkerOptionItem>-lglfw3dll</linkerOptionItem>
             <linkerOptionItem>-lglew32</linkerOptionItem>
             <linkerOptionItem>-lopengl32</linkerOptionItem>
-            <linkerOptionItem>-lglu32</linkerOptionItem>
-            <linkerOptionItem>-lgdi32</linkerOptionItem>
+            <linkerOptionItem>-lpng16</linkerOptionItem>
             <linkerOptionItem>-lz</linkerOptionItem>
             <linkerOptionItem>-ljpeg</linkerOptionItem>
             <linkerOptionItem>-lBulletCollision.dll</linkerOptionItem>

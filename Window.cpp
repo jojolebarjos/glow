@@ -56,7 +56,6 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     std::cout << "GLFW: " << glfwGetVersionString() << std::endl;
     std::cout << "GLEW: " << glewGetString(GLEW_VERSION) << std::endl;
     std::cout << "GLM: " << GLM_VERSION_MAJOR << '.' << GLM_VERSION_MINOR << '.' << GLM_VERSION_PATCH << '.' << GLM_VERSION_REVISION << std::endl;
-    std::cout << "libjpeg: " << (JPEG_LIB_VERSION / 10) << (char)(JPEG_LIB_VERSION % 10 + 'a' - 1) << std::endl;
     std::cout << "Bullet: " << (BT_BULLET_VERSION / 100) << '.' << ((BT_BULLET_VERSION / 10) % 10) << '.' << (BT_BULLET_VERSION % 10) << std::endl;
     
     // Initialize GLFW
