@@ -60,7 +60,15 @@ public:
     glm::mat4 getEyeProjection(unsigned int index) const;
     glm::mat4 getEyeView(unsigned int index) const;
     // TODO more detailed getters for eyes?
-    // TODO other tracking devices
+    
+    bool isDeviceConnected(uint32_t index) const;
+    bool isDeviceHead(uint32_t index) const;
+    bool isDeviceController(uint32_t index) const;
+    bool isDeviceReference(uint32_t index) const;
+    glm::mat4 getDeviceTransform(uint32_t index) const;
+    glm::vec3 getDeviceVelocity(uint32_t index) const;
+    glm::vec3 getDeviceAngularVelocity(uint32_t index) const;
+    // TODO get buttons/axis (i.e. should we merge that with gamepads?)
     
     bool update();
     
@@ -105,6 +113,7 @@ private:
     VertexArray * square_array;
     
     vr::TrackedDevicePose_t device[vr::k_unMaxTrackedDeviceCount];
+    vr::ETrackedDeviceClass device_type[vr::k_unMaxTrackedDeviceCount];
     glm::mat4 device_transform[vr::k_unMaxTrackedDeviceCount];
     glm::vec3 device_velocity[vr::k_unMaxTrackedDeviceCount];
     glm::vec3 device_angularVelocity[vr::k_unMaxTrackedDeviceCount];

@@ -180,6 +180,8 @@ bool Window::initialize(uint32_t width, uint32_t height) {
     eye_offset[1] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right));
     // TODO compute distortion at some point?
     hmd->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
+    for (unsigned int i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        device_type[i] = vr::TrackedDeviceClass_Invalid;
     
     // Create framebuffers
     for (unsigned int i = 0; i < 2; ++i) {
@@ -337,6 +339,62 @@ glm::mat4 Window::getEyeView(unsigned int index) const {
     return glm::mat4();    
 }
 
+bool Window::isDeviceConnected(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_type[index] != vr::TrackedDeviceClass_Invalid;
+#endif
+    return false;
+}
+
+bool Window::isDeviceHead(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_type[index] == vr::TrackedDeviceClass_HMD;
+#endif
+    return false;    
+}
+
+bool Window::isDeviceController(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_type[index] == vr::TrackedDeviceClass_Controller;
+#endif
+    return false;    
+}
+
+bool Window::isDeviceReference(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_type[index] == vr::TrackedDeviceClass_TrackingReference;
+#endif
+    return false;    
+}
+
+glm::mat4 Window::getDeviceTransform(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_transform[index];
+#endif
+    return glm::mat4();    
+}
+
+glm::vec3 Window::getDeviceVelocity(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_velocity[index];
+#endif
+    return glm::vec3();
+}
+
+glm::vec3 Window::getDeviceAngularVelocity(uint32_t index) const {
+#ifdef GLOW_OPENVR
+    if (index < vr::k_unMaxTrackedDeviceCount)
+        return device_angularVelocity[index];
+#endif
+    return glm::vec3();
+}
+
 bool Window::update() {
     
     // Check if running
@@ -373,7 +431,25 @@ bool Window::update() {
         
         // Update tracked device for next frame
         compositor->WaitGetPoses(device, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-        for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
+            vr::ETrackedDeviceClass type = hmd->GetTrackedDeviceClass(i);
+            if (type != device_type[i]) {
+                device_type[i] = type;
+                std::cout << "Device " << i << " is ";
+                switch (type) {
+                    case vr::TrackedDeviceClass_HMD:
+                        std::cout << "head" << std::endl;
+                        break;
+                    case vr::TrackedDeviceClass_Controller:
+                        std::cout << "controller" << std::endl;
+                        break;
+                    case vr::TrackedDeviceClass_TrackingReference:
+                        std::cout << "tracking reference" << std::endl;
+                        break;
+                    default:
+                        std::cout << "invalid" << std::endl;
+                }
+            }
             if (device[i].bPoseIsValid) {
                 device_transform[i] = toGlm(device[i].mDeviceToAbsoluteTracking);
                 std::swap(device_transform[i][1], device_transform[i][2]);
@@ -381,6 +457,7 @@ bool Window::update() {
                 device_velocity[i] = toGlm(device[i].vVelocity);
                 device_angularVelocity[i] = toGlm(device[i].vAngularVelocity);
             }
+        }
         
         // Update view matrices
         if (device[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
@@ -389,10 +466,10 @@ bool Window::update() {
             eye_view[1] = eye_offset[1] * matrix;
         }
         
-        // TODO update controller and tracking reference devices
-        // TODO poll events https://github.com/ValveSoftware/openvr/wiki/IVRSystem::PollNextEvent
+        // TODO poll events?
+        // https://github.com/ValveSoftware/openvr/wiki/IVRSystem::PollNextEvent
         // https://github.com/ValveSoftware/openvr/wiki/VREvent_t
-        // hmd->GetTrackedDeviceClass(i) == vr::TrackedDeviceClass_Controller && hmd->IsTrackedDeviceConnected(i)
+        // also useful for GLFW? or is active polling good enough?
         
     }    
 #endif
@@ -440,21 +517,21 @@ bool Window::update() {
 #ifdef GLOW_OPENVR
 
 glm::mat4 Window::toGlm(vr::HmdMatrix34_t const & matrix) const {
-    return glm::transpose(glm::mat4(
-        matrix.m[0][0], matrix.m[0][1], matrix.m[0][2], matrix.m[0][3],
-        matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
-        matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
-        0.0f, 0.0f, 0.0f, 1.0f
-    ));
+    return glm::mat4(
+        matrix.m[0][0], matrix.m[1][0], matrix.m[2][0], 0.0f,
+        matrix.m[0][1], matrix.m[1][1], matrix.m[2][1], 0.0f,
+        matrix.m[0][2], matrix.m[1][2], matrix.m[2][2], 0.0f,
+        matrix.m[0][3], matrix.m[1][3], matrix.m[2][3], 1.0f,
+    );
 }
 
 glm::mat4 Window::toGlm(vr::HmdMatrix44_t const & matrix) const {
-    return glm::transpose(glm::mat4(
-        matrix.m[0][0], matrix.m[0][1], matrix.m[0][2], matrix.m[0][3],
-        matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
-        matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
-        matrix.m[3][0], matrix.m[3][1], matrix.m[3][2], matrix.m[3][3]
-    ));
+    return glm::mat4(
+        matrix.m[0][0], matrix.m[1][0], matrix.m[2][0], matrix.m[3][0],
+        matrix.m[0][1], matrix.m[1][1], matrix.m[2][1], matrix.m[3][1],
+        matrix.m[0][2], matrix.m[1][2], matrix.m[2][2], matrix.m[3][2],
+        matrix.m[0][3], matrix.m[1][3], matrix.m[2][3], matrix.m[3][3]
+    );
 }
 
 glm::vec3 Window::toGlm(vr::HmdVector3_t const & vector) const {
