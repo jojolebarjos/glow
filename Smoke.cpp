@@ -59,13 +59,24 @@ void Smoke::update() {
     textures[0].bind(0);
     textures[1].bind(1);
 
-    // Apply forces
-    // TODO improve force application (i.e. more freedom on velocity direction/magnitude)
+    // Compute effect
+    float dt = window->getDeltaTime();
+    if (dt > 0.0001f) {
+        glm::vec2 new_mouse = window->getMouseLocation();
+        glm::vec2 delta = new_mouse - last_mouse;
+        delta *= 0.2f;
+        last_mouse = new_mouse;
+        average_delta = average_delta * 0.9f + delta * 0.1f / window->getDeltaTime();
+    }
+    std::cout << average_delta << std::endl;
     int mode = window->isMouseButtonDown(0) ? 1 : window->isMouseButtonDown(1) ? 2 : 0;
+    
+    // Apply forces
     pass1.use();
     pass1.setUniform("mode", mode);
     pass1.setUniform("location", window->getMouseLocation());
     pass1.setUniform("radius", 16.0f);
+    pass1.setUniform("direction", average_delta * window->getDeltaTime());
     pass1.setUniform("previous", current);
     current ^= 1;
     framebuffers[current].bind();

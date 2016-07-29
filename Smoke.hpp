@@ -38,8 +38,9 @@ private:
     VertexArray array;
     
     int current;
+    glm::vec2 last_mouse;
+    glm::vec2 average_delta;
     
 };
 
-#endif /* SMOKE_HPP */
-
+#endif

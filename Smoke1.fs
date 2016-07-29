@@ -9,6 +9,7 @@ uniform sampler2D previous;
 uniform int mode;
 uniform vec2 location;
 uniform float radius;
+uniform vec2 direction;
 
 void main() {
 
@@ -32,7 +33,7 @@ void main() {
         float distance = length(gl_FragCoord.xy - location);
         if (distance <= radius) {
             if (mode == 1)
-                force = vec2(0.5, 0.5);
+                force = direction;
             else if (mode == 2)
                 center.w = 2.0;
         }
