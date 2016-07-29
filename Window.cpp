@@ -1,5 +1,6 @@
 
 #include "Window.hpp"
+#include "Listener.hpp"
 
 #ifdef GLOW_JPEG
 extern "C" {
@@ -23,6 +24,9 @@ Window::Window() {
     eye_texture[1] = nullptr;
     eye_framebuffer[0] = nullptr;
     eye_framebuffer[1] = nullptr;
+    duplication_shader = nullptr;
+    square_buffer = nullptr;
+    square_array = nullptr;
 #endif
 }
 
@@ -34,6 +38,9 @@ Window::~Window() {
         delete eye_framebuffer[1];
         delete eye_texture[0];
         delete eye_texture[1];
+        delete duplication_shader;
+        delete square_array;
+        delete square_buffer;
     }
 #endif
     if (window) {
@@ -161,6 +168,26 @@ bool Window::initialize(uint32_t width, uint32_t height) {
         eye_framebuffer[i]->validate();
     }
     
+    // Load duplication shader
+    duplication_shader = new Shader();
+    duplication_shader->addSourceFile(GL_VERTEX_SHADER, "Duplication.vs");
+    duplication_shader->addSourceFile(GL_FRAGMENT_SHADER, "Duplication.fs");
+    if (!duplication_shader->link()) {
+        delete duplication_shader;
+        duplication_shader = nullptr;
+    }
+    
+    // Load square
+    if (duplication_shader && square_mesh.load("Square.obj")) {
+        square_buffer->bind(GL_ARRAY_BUFFER);
+        square_buffer->setData(square_mesh.getCount() * 4 * (3 + 2), nullptr, GL_STATIC_DRAW);
+        square_buffer->setSubData(0, square_mesh.getCount() * 4 * 3, square_mesh.getPositions());
+        square_buffer->setSubData(square_mesh.getCount() * 4 * 3, square_mesh.getCount() * 4 * 2, square_mesh.getCoordinates());
+        square_array->bind();
+        square_array->addAttribute(0, 3, GL_FLOAT, 0, 0);
+        square_array->addAttribute(1, 2, GL_FLOAT, 0, square_mesh.getCount() * 4 * 3);
+    }
+    
 #endif
     return true;
 }
@@ -260,7 +287,22 @@ bool Window::update() {
         compositor->Submit(vr::Eye_Left, &left);
         compositor->Submit(vr::Eye_Right, &right);
         
-        // TODO if requested, render on screen
+        // Render content on screen
+        // TODO add option to disable this behaviour
+        if (square_array) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            square_array->bind();
+            duplication_shader->use();
+            duplication_shader->setUniform("texture", 0);
+            duplication_shader->setUniform("transform", -0.51f);
+            eye_texture[0]->bind(0);
+            glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
+            duplication_shader->setUniform("transform", 0.51f);
+            eye_texture[1]->bind(0);
+            glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
+        }
         
         // Update tracked device for next frame
         compositor->WaitGetPoses(device, vr::k_unMaxTrackedDeviceCount, nullptr, 0);

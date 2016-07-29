@@ -5,6 +5,10 @@
 #include "Common.hpp"
 #include "Texture.hpp"
 #include "Framebuffer.hpp"
+#include "Shader.hpp"
+#include "Buffer.hpp"
+#include "VertexArray.hpp"
+#include "Mesh.hpp"
 
 #ifdef GLOW_OPENVR
 // See tunabrain's workaround for MinGW: https://github.com/ValveSoftware/openvr/issues/133
@@ -68,6 +72,12 @@ private:
     glm::mat4 eye_projection[2];
     glm::mat4 eye_offset[2];
     glm::mat4 eye_view[2];
+    
+    Shader * duplication_shader;
+    
+    Mesh square_mesh;
+    Buffer * square_buffer;
+    VertexArray * square_array;
     
     vr::TrackedDevicePose_t device[vr::k_unMaxTrackedDeviceCount];
     glm::mat4 device_transform[vr::k_unMaxTrackedDeviceCount];
