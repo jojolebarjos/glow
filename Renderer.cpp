@@ -28,10 +28,15 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     shading_shader.addSourceFile(GL_FRAGMENT_SHADER, "Shading.fs");
     shading_shader.link();
     
-    // Load finalization shader (gamma and HDR resolution)
+    // Load finalization shader
     finalize_shader.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     finalize_shader.addSourceFile(GL_FRAGMENT_SHADER, "Finalize.fs");
     finalize_shader.link();
+    
+    // Load FXAA shader
+    fxaa_shader.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
+    fxaa_shader.addSourceFile(GL_FRAGMENT_SHADER, "FXAA.fs");
+    fxaa_shader.link();
     
     // Create render target
     render_color.createColor(width, height, true);
@@ -252,13 +257,20 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
     glDepthMask(GL_TRUE);
     
     // Combine result on screen
-    // TODO antialiasing, bloom, hdr, tone mapping, gamma correction
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // TODO bloom, hdr, tone mapping, gamma correction
+    processing_framebuffer[0].bind();
     finalize_shader.use();
     finalize_shader.setUniform("texture_color", 0);
     finalize_shader.setUniform("texture_position", 1);
     finalize_shader.setUniform("texture_normal", 2);
     finalize_shader.setUniform("texture_light", 3);
+    drawSquare();
+    
+    // Apply FXAA
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    processing_color[0].bind(0);
+    fxaa_shader.use();
+    fxaa_shader.setUniform("texture", 0);
     drawSquare();
     
 }

@@ -88,6 +88,7 @@ private:
     Shader extrusion_shader;
     Shader shading_shader;
     Shader finalize_shader;
+    Shader fxaa_shader;
     
     Texture render_color;
     Texture render_position;
