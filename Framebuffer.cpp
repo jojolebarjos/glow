@@ -29,5 +29,13 @@ void Framebuffer::attach(Texture & texture) {
 }
 
 bool Framebuffer::validate() {
+    
+    // Enable all draw buffers
+    GLenum attachments[16];
+    for (int i = 0; i < 16; ++i)
+        attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+    glDrawBuffers(color, attachments);
+    
+    // Check completeness
     return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 }

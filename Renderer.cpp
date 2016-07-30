@@ -13,9 +13,9 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     // TODO handle errors
     
     // Load depth-only rendering shader
-    depth_shader.addSourceFile(GL_VERTEX_SHADER, "Depth.vs");
-    depth_shader.addSourceFile(GL_FRAGMENT_SHADER, "Depth.fs");
-    depth_shader.link();
+    render_shader.addSourceFile(GL_VERTEX_SHADER, "Render.vs");
+    render_shader.addSourceFile(GL_FRAGMENT_SHADER, "Render.fs");
+    render_shader.link();
 
     // Load shadow volume extrusion shader
     extrusion_shader.addSourceFile(GL_VERTEX_SHADER, "Extrusion.vs");
@@ -27,16 +27,6 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     shading_shader.addSourceFile(GL_VERTEX_SHADER, "Shading.vs");
     shading_shader.addSourceFile(GL_FRAGMENT_SHADER, "Shading.fs");
     shading_shader.link();
-
-    // Load texture shader
-    texture_shader.addSourceFile(GL_VERTEX_SHADER, "Texture.vs");
-    texture_shader.addSourceFile(GL_FRAGMENT_SHADER, "Texture.fs");
-    texture_shader.link();
-    
-    // Load multisampling resolution shader
-    resolve_shader.addSourceFile(GL_VERTEX_SHADER, "Resolve.vs");
-    resolve_shader.addSourceFile(GL_FRAGMENT_SHADER, "Resolve.fs");
-    resolve_shader.link();
     
     // Load finalization shader (gamma and HDR resolution)
     finalize_shader.addSourceFile(GL_VERTEX_SHADER, "Finalize.vs");
@@ -44,12 +34,22 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     finalize_shader.link();
     
     // Create render target
-    render_color.createColor(width, height, true, 4);
-    render_depthStencil.createDepthStencil(width, height, 4);
+    render_color.createColor(width, height, true);
+    render_position.createColor(width, height, true);
+    render_normal.createColor(width, height, true);
+    render_light.createColor(width, height, true);
+    render_depthStencil.createDepthStencil(width, height);
     render_framebuffer.bind();
     render_framebuffer.attach(render_color);
+    render_framebuffer.attach(render_position);
+    render_framebuffer.attach(render_normal);
+    render_framebuffer.attach(render_light);
     render_framebuffer.attach(render_depthStencil);
     render_framebuffer.validate();
+    render_light_framebuffer.bind();
+    render_light_framebuffer.attach(render_light);
+    render_light_framebuffer.attach(render_depthStencil);
+    render_light_framebuffer.validate();
     
     // Create processing targets
     for (int i = 0; i < 3; ++i) {
@@ -151,34 +151,42 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
     // Use the same vertex array for everything
     array.bind();
     
-    // Select render framebuffer
+    // Bind textures
+    render_color.bind(0);
+    render_position.bind(1);
+    render_normal.bind(2);
+    render_light.bind(3);
+    
+    // Select complete render framebuffer
     render_framebuffer.bind();
     
     // Clear everything
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
-    // Enable depth test for geaometry rendering
+    // Enable depth test for geometry rendering
     glEnable(GL_DEPTH_TEST);
     
-    // Select depth shader
-    depth_shader.use();
-    depth_shader.setUniform("projection", projection);
-    depth_shader.setUniform("view", view);
+    // Select render shader
+    render_shader.use();
+    render_shader.setUniform("projection", projection);
+    render_shader.setUniform("view", view);
     
-    // Draw geometry (depth-only))
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    drawUntexturedObjects(depth_shader);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    // TODO if using mipmap/anisotropic filtering, render texture here, since it needs depth/normal
-    // and then, use deferred shading to compute lightmap
-
-    // Do not override old depth
+    // Draw textured geometry and store diffuse, emissive, position and normals
+    drawTexturedObjects(render_shader);
+    
+    // Select light-only render buffer
+    render_light_framebuffer.bind();
+    
+    // Do not overwrite depth
     glDepthMask(GL_FALSE);
-
+    
     // Enable stencil to render shadows
     glEnable(GL_STENCIL_TEST);
-
+    
+    // Disable depth test
+    glDisable(GL_DEPTH_TEST);
+    
     // For each light...
     for (LightInfo & light : lights) {
 
@@ -192,7 +200,10 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
 
         // Do not write color as well
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
+        
+        // Enable depth test
+        glEnable(GL_DEPTH_TEST);
+        
         // Select extrusion shader
         extrusion_shader.use();
         extrusion_shader.setUniform("projection", projection);
@@ -208,14 +219,14 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
 
         // Now, write color
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        
+        // Disable depth test
+        glDisable(GL_DEPTH_TEST);
 
         // Use stencil to only draw on non-zero area
         glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_EQUAL, 0, ~(GLint)0);
         glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
-
-        // Render only fragments that are exactly on geometry
-        glDepthFunc(GL_EQUAL);
-
+        
         // Use additive blend to combine lightmaps
         glEnable(GL_BLEND);
         glBlendEquation(GL_FUNC_ADD);
@@ -223,64 +234,33 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
 
         // Select shading shader
         shading_shader.use();
-        shading_shader.setUniform("projection", projection);
-        shading_shader.setUniform("view", view);
         shading_shader.setUniform("light_position", light.position);
         shading_shader.setUniform("light_color", light.color);
         shading_shader.setUniform("light_radius", light.radius);
+        shading_shader.setUniform("texture_position", 1);
+        shading_shader.setUniform("texture_normal", 2);
 
         // Draw geometry again to shade surfaces properly
-        drawUntexturedObjects(shading_shader);
+        drawSquare();
 
         // Restore default values
         glDisable(GL_BLEND);
-        glDepthFunc(GL_LESS);
     }
-
-    // Disable stencil
-    glDisable(GL_STENCIL_TEST);
-
-    // Render only fragments that are exactly on geometry
-    glDepthFunc(GL_EQUAL);
-
-    // Use multiplicative blend to combine light and texture
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_DST_COLOR, GL_ZERO);
-
-    // Select texture shader
-    texture_shader.use();
-    texture_shader.setUniform("projection", projection);
-    texture_shader.setUniform("view", view);
-    texture_shader.setUniform("texture", 0);
-
-    // Draw geometry again zo have textures
-    drawTexturedObjects(texture_shader);
-
+    
     // Restore defaults
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
+    glDisable(GL_STENCIL_TEST);
     glDepthMask(GL_TRUE);
-    glDisable(GL_DEPTH_TEST);
     
-    // Resolve multisampled buffer
-    processing_framebuffer[0].bind();
-    render_color.bind(0);
-    resolve_shader.use();
-    resolve_shader.setUniform("texture", 0);
-    // TODO set sample count uniform
-    drawSquare();
-    
-    // Bloom
-    // TODO 
-    
-    // Correct gamma and resolve HDR
+    // Combine result on screen
+    // TODO antialiasing, bloom, hdr, tone mapping, gamma correction
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    processing_color[0].bind(0);
     finalize_shader.use();
-    finalize_shader.setUniform("texture", 0);
-    // TODO set gamma uniform
+    finalize_shader.setUniform("texture_color", 0);
+    finalize_shader.setUniform("texture_position", 1);
+    finalize_shader.setUniform("texture_normal", 2);
+    finalize_shader.setUniform("texture_light", 3);
     drawSquare();
+    
 }
 
 void Renderer::drawUntexturedObjects(Shader & shader) {
@@ -301,10 +281,10 @@ void Renderer::drawCasterObjects(Shader & shader) {
 }
 
 void Renderer::drawTexturedObjects(Shader & shader) {
-    shader.setUniform("texture", 0);
+    shader.setUniform("texture", 4);
     for (MeshInfo & mesh : meshes) {
         shader.setUniform("model", mesh.transform);
-        textures[mesh.color]->bind(0);
+        textures[mesh.color]->bind(4);
         // TODO other textures
         glm::ivec2 m = meshMaps[mesh.mesh];
         glDrawArrays(GL_TRIANGLES, m.x, m.y);

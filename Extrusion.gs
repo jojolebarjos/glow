@@ -9,6 +9,19 @@ uniform mat4 view;
 uniform vec3 light_position;
 uniform float light_radius;
 
+void emit(vec3 p) {
+
+    // Project vertex
+    vec4 pos = projection * view * vec4(p, 1.0);
+
+    // Add bias to avoid z-fight
+    pos.z += 0.00001 * pos.w;
+
+    // Emit final vertex
+    gl_Position = pos;
+    EmitVertex();
+}
+
 void main() {
     
     // Get triangle coordinates
@@ -34,38 +47,24 @@ void main() {
 
     // Emit first patch
     // c b cp bp dp ap cp a c b
-    gl_Position = projection * view * vec4(c, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(b, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(cp, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(bp, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(dp, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(ap, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(cp, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(a, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(c, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(b, 1.0);
-    EmitVertex();
+    emit(c);
+    emit(b);
+    emit(cp);
+    emit(bp);
+    emit(dp);
+    emit(ap);
+    emit(cp);
+    emit(a);
+    emit(c);
+    emit(b);
     EndPrimitive();
 
     // Emit second patch
     // a ap b bp
-    gl_Position = projection * view * vec4(a, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(ap, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(b, 1.0);
-    EmitVertex();
-    gl_Position = projection * view * vec4(bp, 1.0);
-    EmitVertex();
+    emit(a);
+    emit(ap);
+    emit(b);
+    emit(bp);
     EndPrimitive();
 
 }

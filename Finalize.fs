@@ -4,11 +4,11 @@ in vec2 v_coordinate;
 
 out vec4 color;
 
-uniform sampler2D texture;
+uniform sampler2D texture_color;
+uniform sampler2D texture_position;
+uniform sampler2D texture_normal;
+uniform sampler2D texture_light;
 
 void main() {
-    vec3 original = texture2D(texture, v_coordinate).rgb;
-    // TODO tone mapping
-    // TODO gamma correction
-    color = vec4(original, 1.0);
+    color = texture2D(texture_light, v_coordinate) * texture2D(texture_color, v_coordinate);
 }

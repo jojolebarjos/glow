@@ -84,16 +84,18 @@ private:
     glm::mat4 projection;
     glm::mat4 view;
     
-    Shader depth_shader;
+    Shader render_shader;
     Shader extrusion_shader;
     Shader shading_shader;
-    Shader texture_shader;
-    Shader resolve_shader;
     Shader finalize_shader;
     
     Texture render_color;
+    Texture render_position;
+    Texture render_normal;
+    Texture render_light;
     Texture render_depthStencil;
     Framebuffer render_framebuffer;
+    Framebuffer render_light_framebuffer;
     
     Texture processing_color[3];
     Framebuffer processing_framebuffer[3];

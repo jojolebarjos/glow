@@ -27,8 +27,6 @@
                    displayName="Resource Files"
                    projectFiles="true">
       <itemPath>Cube.obj</itemPath>
-      <itemPath>Depth.fs</itemPath>
-      <itemPath>Depth.vs</itemPath>
       <itemPath>Duplication.fs</itemPath>
       <itemPath>Duplication.vs</itemPath>
       <itemPath>Extrusion.fs</itemPath>
@@ -36,8 +34,8 @@
       <itemPath>Extrusion.vs</itemPath>
       <itemPath>Finalize.fs</itemPath>
       <itemPath>Finalize.vs</itemPath>
-      <itemPath>Resolve.fs</itemPath>
-      <itemPath>Resolve.vs</itemPath>
+      <itemPath>Render.fs</itemPath>
+      <itemPath>Render.vs</itemPath>
       <itemPath>Shading.fs</itemPath>
       <itemPath>Shading.vs</itemPath>
       <itemPath>Smoke.vs</itemPath>
@@ -47,8 +45,6 @@
       <itemPath>Smoke4.fs</itemPath>
       <itemPath>Square.obj</itemPath>
       <itemPath>Test.bmp</itemPath>
-      <itemPath>Texture.fs</itemPath>
-      <itemPath>Texture.vs</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -125,10 +121,6 @@
       </item>
       <item path="Cube.obj" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Depth.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Depth.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Duplication.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Duplication.vs" ex="false" tool="3" flavor2="0">
@@ -165,13 +157,13 @@
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Render.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Render.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Resolve.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Resolve.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Sampler.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -217,11 +209,7 @@
       </item>
       <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Texture.fs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Texture.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Texture.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Value.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -283,10 +271,6 @@
       </item>
       <item path="Cube.obj" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Depth.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Depth.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Duplication.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Duplication.vs" ex="false" tool="3" flavor2="0">
@@ -323,13 +307,13 @@
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Render.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Render.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Renderer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Renderer.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Resolve.fs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Resolve.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Sampler.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -375,11 +359,7 @@
       </item>
       <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Texture.fs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Texture.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Texture.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Value.cpp" ex="false" tool="1" flavor2="0">
       </item>
