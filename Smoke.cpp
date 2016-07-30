@@ -8,13 +8,13 @@ Smoke::Smoke(Window * window) : window(window) {}
 bool Smoke::initialize() {
     
     // Load shaders
-    pass1.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
+    pass1.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     pass1.addSourceFile(GL_FRAGMENT_SHADER, "Smoke1.fs");
-    pass2.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
+    pass2.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     pass2.addSourceFile(GL_FRAGMENT_SHADER, "Smoke2.fs");
-    pass3.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
+    pass3.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     pass3.addSourceFile(GL_FRAGMENT_SHADER, "Smoke3.fs");
-    render.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
+    render.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     render.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
     if (!pass1.link() || !pass2.link() || !pass3.link() || !render.link()) {
         std::cout << "Failed to compile shaders" << std::endl;
@@ -83,7 +83,7 @@ void Smoke::update() {
 
     // Compute pressure
     pass2.use();
-    for (int i = 0; i < 50; ++i) {
+    for (int i = 0; i < 30; ++i) {
         pass2.setUniform("previous", current);
         current ^= 1;
         framebuffers[current].bind();

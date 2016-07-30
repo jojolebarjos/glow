@@ -33,12 +33,10 @@
       <itemPath>Extrusion.gs</itemPath>
       <itemPath>Extrusion.vs</itemPath>
       <itemPath>Finalize.fs</itemPath>
-      <itemPath>Finalize.vs</itemPath>
+      <itemPath>Processing.vs</itemPath>
       <itemPath>Render.fs</itemPath>
       <itemPath>Render.vs</itemPath>
       <itemPath>Shading.fs</itemPath>
-      <itemPath>Shading.vs</itemPath>
-      <itemPath>Smoke.vs</itemPath>
       <itemPath>Smoke1.fs</itemPath>
       <itemPath>Smoke2.fs</itemPath>
       <itemPath>Smoke3.fs</itemPath>
@@ -133,8 +131,6 @@
       </item>
       <item path="Finalize.fs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Finalize.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Framebuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Framebuffer.hpp" ex="false" tool="3" flavor2="0">
@@ -156,6 +152,8 @@
       <item path="Mesh.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Processing.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Render.fs" ex="false" tool="3" flavor2="0">
       </item>
@@ -179,13 +177,9 @@
       </item>
       <item path="Shading.fs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Shading.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Smoke.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Smoke.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Smoke.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Smoke1.fs" ex="false" tool="3" flavor2="0">
       </item>
@@ -283,8 +277,6 @@
       </item>
       <item path="Finalize.fs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Finalize.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Framebuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Framebuffer.hpp" ex="false" tool="3" flavor2="0">
@@ -306,6 +298,8 @@
       <item path="Mesh.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Processing.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Render.fs" ex="false" tool="3" flavor2="0">
       </item>
@@ -329,13 +323,9 @@
       </item>
       <item path="Shading.fs" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Shading.vs" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Smoke.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Smoke.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Smoke.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Smoke1.fs" ex="false" tool="3" flavor2="0">
       </item>

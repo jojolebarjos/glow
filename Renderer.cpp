@@ -24,12 +24,12 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     extrusion_shader.link();
 
     // Load shading shader
-    shading_shader.addSourceFile(GL_VERTEX_SHADER, "Shading.vs");
+    shading_shader.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     shading_shader.addSourceFile(GL_FRAGMENT_SHADER, "Shading.fs");
     shading_shader.link();
     
     // Load finalization shader (gamma and HDR resolution)
-    finalize_shader.addSourceFile(GL_VERTEX_SHADER, "Finalize.vs");
+    finalize_shader.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
     finalize_shader.addSourceFile(GL_FRAGMENT_SHADER, "Finalize.fs");
     finalize_shader.link();
     
