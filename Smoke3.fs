@@ -1,6 +1,10 @@
 #version 330 core
 
 in vec2 v_coordinate;
+in vec2 v_coordinate_top;
+in vec2 v_coordinate_bottom;
+in vec2 v_coordinate_left;
+in vec2 v_coordinate_right;
 
 out vec4 next;
 
@@ -10,11 +14,11 @@ void main() {
 
     // Get neighbourhood
     vec2 size = textureSize(previous, 0);
-    vec4 center = texture2D(previous, gl_FragCoord.xy / size);
-    vec4 top    = texture2D(previous, (gl_FragCoord.xy + vec2( 0.0,  1.0)) / size);
-    vec4 bottom = texture2D(previous, (gl_FragCoord.xy + vec2( 0.0, -1.0)) / size);
-    vec4 left   = texture2D(previous, (gl_FragCoord.xy + vec2(-1.0,  0.0)) / size);
-    vec4 right  = texture2D(previous, (gl_FragCoord.xy + vec2( 1.0,  0.0)) / size);
+    vec4 center = texture2D(previous, v_coordinate);
+    vec4 top    = texture2D(previous, v_coordinate_top);
+    vec4 bottom = texture2D(previous, v_coordinate_bottom);
+    vec4 left   = texture2D(previous, v_coordinate_left);
+    vec4 right  = texture2D(previous, v_coordinate_right);
 
     // Fix velocity using pressure to guarantee fluid incompressibility
     vec2 velocity = center.xy - vec2(right.z - left.z, top.z - bottom.z) / 2.0;

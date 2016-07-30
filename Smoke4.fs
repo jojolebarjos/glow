@@ -11,7 +11,7 @@ void main() {
 
     // Get value
     vec2 size = textureSize(previous, 0);
-    vec4 center = texture2D(previous, gl_FragCoord.xy / size);
+    vec4 center = texture2D(previous, v_coordinate);
 
     // Render appropriate color
     // TODO rescale properly
