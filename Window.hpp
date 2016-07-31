@@ -70,7 +70,9 @@ public:
     glm::mat4 getDeviceTransform(uint32_t index) const;
     glm::vec3 getDeviceVelocity(uint32_t index) const;
     glm::vec3 getDeviceAngularVelocity(uint32_t index) const;
+    
     // TODO get buttons/axis (i.e. should we merge that with gamepads?)
+    bool isDeviceButtonDown(uint32_t index, uint32_t button_index) const;
     
     bool update();
     
@@ -113,6 +115,7 @@ private:
     glm::mat4 device_transform[vr::k_unMaxTrackedDeviceCount];
     glm::vec3 device_velocity[vr::k_unMaxTrackedDeviceCount];
     glm::vec3 device_angularVelocity[vr::k_unMaxTrackedDeviceCount];
+    vr::VRControllerState_t state[vr::k_unMaxTrackedDeviceCount];
     
     // TODO play area https://github.com/ValveSoftware/openvr/wiki/IVRChaperone_Overview
     

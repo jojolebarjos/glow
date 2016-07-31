@@ -16,7 +16,9 @@ bool Smoke::initialize() {
     pass3.addSourceFile(GL_FRAGMENT_SHADER, "Smoke3.fs");
     render.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     render.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
-    if (!pass1.link() || !pass2.link() || !pass3.link() || !render.link()) {
+    render_3d.addSourceFile(GL_VERTEX_SHADER, "Render.vs");
+    render_3d.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
+    if (!pass1.link() || !pass2.link() || !pass3.link() || !render.link() || !render_3d.link()) {
         std::cout << "Failed to compile shaders" << std::endl;
         return false;
     }
@@ -32,7 +34,7 @@ bool Smoke::initialize() {
     buffer.setSubData(mesh.getCount() * 4 * 3, mesh.getCount() * 4 * 2, mesh.getCoordinates());
     array.bind();
     array.addAttribute(0, 3, GL_FLOAT, 0, 0);
-    array.addAttribute(1, 2, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
+    array.addAttribute(2, 2, GL_FLOAT, 0, mesh.getCount() * 4 * 3);
     
     // Create textures
     for (int i = 0; i < 2; ++i) {
@@ -52,30 +54,53 @@ bool Smoke::initialize() {
 }
 
 void Smoke::update() {
-    // TODO add VR support (draw on the ground)
     
     // Bind objects
+    glViewport(0, 0, window->getWidth(), window->getHeight());
     array.bind();
     textures[0].bind(0);
     textures[1].bind(1);
 
-    // Compute effect
-    float dt = window->getDeltaTime();
-    if (dt > 0.0001f) {
-        glm::vec2 new_mouse = window->getMouseLocation();
-        glm::vec2 delta = new_mouse - last_mouse;
-        delta *= 0.2f;
-        last_mouse = new_mouse;
-        average_delta = average_delta * 0.9f + delta * 0.1f / window->getDeltaTime();
+    // Get input
+    int mode = 0;
+    glm::vec2 new_location = location;
+    if (window->hasStereoscopy()) {
+        uint32_t device = window->getDeviceController(0);
+        glm::mat4 transform = window->getDeviceTransform(device);
+        glm::vec3 position(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        glm::vec3 forward(transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+        if (forward.z < -0.1f) {
+            float distance = -position.z / forward.z;
+            new_location = glm::vec2(position + forward * distance);
+            new_location.x = (new_location.x + 2.0f) * 0.25f * window->getWidth();
+            new_location.y = (new_location.y + 2.0f) * 0.25f * window->getHeight();
+        }
+        if (window->isDeviceButtonDown(device, 33))
+            mode = 2;
+        else if (window->isDeviceButtonDown(device, 1))
+            mode = 1;
+    } else {
+        new_location = window->getMouseLocation();
+        if (window->isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT))
+            mode = 1;
+        else if (window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+            mode = 2;
     }
-    int mode = window->isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) ? 1 : window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT) ? 2 : 0;
+    
+    // Compute effect
+    if (window->getDeltaTime() > 0.0001f) {
+        glm::vec2 delta = new_location - location;
+        delta *= 0.2f;
+        direction = direction * 0.9f + delta * 0.1f / window->getDeltaTime();
+    }
+    location = new_location;
     
     // Apply forces
     pass1.use();
     pass1.setUniform("mode", mode);
-    pass1.setUniform("location", window->getMouseLocation());
+    pass1.setUniform("location", location);
     pass1.setUniform("radius", 16.0f);
-    pass1.setUniform("direction", average_delta * window->getDeltaTime());
+    pass1.setUniform("direction", direction * window->getDeltaTime());
     pass1.setUniform("previous", current);
     current ^= 1;
     framebuffers[current].bind();
@@ -98,9 +123,25 @@ void Smoke::update() {
     glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
 
     // Render fluid
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    render.use();
-    render.setUniform("previous", current);
-    render.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
-    glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+    if (window->hasStereoscopy()) {
+        // TODO improve 3D rendering (antialiasing, larger area, show controller...)
+        glViewport(0, 0, window->getEyeWidth(), window->getEyeHeight());
+        render_3d.use();
+        render_3d.setUniform("previous", current);
+        render_3d.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
+        render_3d.setUniform("model", glm::mat4(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+        for (int i = 0; i < 2; ++i) {
+            window->getEyeFramebuffer(i)->bind();
+            glClear(GL_COLOR_BUFFER_BIT);
+            render_3d.setUniform("projection", window->getEyeProjection(i));
+            render_3d.setUniform("view", window->getEyeView(i));
+            glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+        }
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        render.use();
+        render.setUniform("previous", current);
+        render.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
+        glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
+    }
 }

@@ -29,6 +29,7 @@ private:
     Shader pass2;
     Shader pass3;
     Shader render;
+    Shader render_3d;
     
     Texture textures[2];
     Framebuffer framebuffers[2];
@@ -38,8 +39,8 @@ private:
     VertexArray array;
     
     int current;
-    glm::vec2 last_mouse;
-    glm::vec2 average_delta;
+    glm::vec2 location;
+    glm::vec2 direction;
     
 };
 

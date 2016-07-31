@@ -414,6 +414,14 @@ glm::vec3 Window::getDeviceAngularVelocity(uint32_t index) const {
     return glm::vec3();
 }
 
+bool Window::isDeviceButtonDown(uint32_t index, uint32_t button_index) const {
+#ifndef GLOW_NO_OPENVR
+    if (isDeviceController(index) && button_index < 64)
+        return (state[index].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button_index)) != 0;
+#endif
+    return false;
+}
+
 bool Window::update() {
     
     // Check if running
@@ -473,6 +481,10 @@ bool Window::update() {
                 // TODO fix axes of velocities
                 device_velocity[i] = toGlm(device[i].vVelocity);
                 device_angularVelocity[i] = toGlm(device[i].vAngularVelocity);
+            }
+            if (type == vr::TrackedDeviceClass_Controller) {
+                hmd->GetControllerState(i, &state[i]);
+                //std::cout << state[i].ulButtonPressed << " " << vr::ButtonMaskFromId((vr::EVRButtonId)33) << std::endl;
             }
         }
         
