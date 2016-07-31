@@ -2,7 +2,7 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 
-Renderer::Renderer() {}
+Renderer::Renderer(Window * window) : window(window) {}
 
 Renderer::~Renderer() {
     for (Texture * texture : textures)
@@ -34,9 +34,9 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     finalize_shader.link();
     
     // Load FXAA shader
-    fxaa_shader.addSourceFile(GL_VERTEX_SHADER, "Processing.vs");
-    fxaa_shader.addSourceFile(GL_FRAGMENT_SHADER, "FXAA.fs");
-    fxaa_shader.link();
+    antialiasing_shader.addSourceFile(GL_VERTEX_SHADER, "Antialiasing.vs");
+    antialiasing_shader.addSourceFile(GL_FRAGMENT_SHADER, "Antialiasing.fs");
+    antialiasing_shader.link();
     
     // Create render target
     render_color.createColor(width, height, true);
@@ -220,6 +220,7 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         // see https://www.opengl.org/wiki_132/index.php?title=Vertex_Post-Processing&redirect=no#Depth_clamping
 
         // Draw geometry
+        // TODO consider only relevant objects (i.e. filter CPU-side)
         drawCasterObjects(extrusion_shader);
 
         // Now, write color
@@ -238,6 +239,7 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         glBlendFunc(GL_ONE, GL_ONE);
 
         // Select shading shader
+        // TODO better shading model
         shading_shader.use();
         shading_shader.setUniform("light_position", light.position);
         shading_shader.setUniform("light_color", light.color);
@@ -246,6 +248,7 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         shading_shader.setUniform("texture_normal", 2);
 
         // Draw geometry again to shade surfaces properly
+        // TODO maybe should not draw full-screen quad and only cover expected area (e.g. using a sphere)
         drawSquare();
 
         // Restore default values
@@ -256,22 +259,37 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
     glDisable(GL_STENCIL_TEST);
     glDepthMask(GL_TRUE);
     
-    // Combine result on screen
-    // TODO bloom, hdr, tone mapping, gamma correction
-    processing_framebuffer[0].bind();
-    finalize_shader.use();
-    finalize_shader.setUniform("texture_color", 0);
-    finalize_shader.setUniform("texture_position", 1);
-    finalize_shader.setUniform("texture_normal", 2);
-    finalize_shader.setUniform("texture_light", 3);
-    drawSquare();
-    
-    // Apply FXAA
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    processing_color[0].bind(0);
-    fxaa_shader.use();
-    fxaa_shader.setUniform("texture", 0);
-    drawSquare();
+    if (window->isKeyboardButtonDown(GLFW_KEY_A)) {
+
+        // Combine result on screen
+        // TODO bloom, hdr, tone mapping, gamma correction
+        processing_framebuffer[0].bind();
+        finalize_shader.use();
+        finalize_shader.setUniform("texture_color", 0);
+        finalize_shader.setUniform("texture_position", 1);
+        finalize_shader.setUniform("texture_normal", 2);
+        finalize_shader.setUniform("texture_light", 3);
+        drawSquare();
+
+        // Apply FXAA
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        processing_color[0].bind(0);
+        antialiasing_shader.use();
+        antialiasing_shader.setUniform("texture", 0);
+        drawSquare();
+        
+    } else {
+        
+        // Combine result on screen
+        // TODO bloom, hdr, tone mapping, gamma correction
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        finalize_shader.use();
+        finalize_shader.setUniform("texture_color", 0);
+        finalize_shader.setUniform("texture_position", 1);
+        finalize_shader.setUniform("texture_normal", 2);
+        finalize_shader.setUniform("texture_light", 3);
+        drawSquare();
+    }
     
 }
 

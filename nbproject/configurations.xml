@@ -26,13 +26,14 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>Antialiasing.fs</itemPath>
+      <itemPath>Antialiasing.vs</itemPath>
       <itemPath>Cube.obj</itemPath>
       <itemPath>Duplication.fs</itemPath>
       <itemPath>Duplication.vs</itemPath>
       <itemPath>Extrusion.fs</itemPath>
       <itemPath>Extrusion.gs</itemPath>
       <itemPath>Extrusion.vs</itemPath>
-      <itemPath>FXAA.fs</itemPath>
       <itemPath>Finalize.fs</itemPath>
       <itemPath>Processing.vs</itemPath>
       <itemPath>Render.fs</itemPath>
@@ -113,6 +114,10 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="Antialiasing.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Antialiasing.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Buffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Buffer.hpp" ex="false" tool="3" flavor2="0">
@@ -130,8 +135,6 @@
       <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Extrusion.vs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="FXAA.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Finalize.fs" ex="false" tool="3" flavor2="0">
       </item>
@@ -263,6 +266,10 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="Antialiasing.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Antialiasing.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Buffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Buffer.hpp" ex="false" tool="3" flavor2="0">
@@ -280,8 +287,6 @@
       <item path="Extrusion.gs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Extrusion.vs" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="FXAA.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Finalize.fs" ex="false" tool="3" flavor2="0">
       </item>

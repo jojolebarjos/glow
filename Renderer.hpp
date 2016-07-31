@@ -30,7 +30,7 @@ public:
         // TODO light, normal, material...
     };
     
-    Renderer();
+    Renderer(Window * window);
     ~Renderer();
     
     Renderer(Renderer const &) = delete;
@@ -59,6 +59,7 @@ private:
     void drawTexturedObjects(Shader & shader);
     void drawSquare();
     
+    Window * window;
     uint32_t width;
     uint32_t height;
     
@@ -88,7 +89,7 @@ private:
     Shader extrusion_shader;
     Shader shading_shader;
     Shader finalize_shader;
-    Shader fxaa_shader;
+    Shader antialiasing_shader;
     
     Texture render_color;
     Texture render_position;

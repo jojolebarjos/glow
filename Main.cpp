@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
     
     // Create window
     Window window;
-    if (!window.initialize(640, 480))
+    if (!window.initialize(1024, 768, false, true))
         return -1;
     
     // Create game

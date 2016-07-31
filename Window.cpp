@@ -26,9 +26,6 @@ Window::Window() {
     eye_texture[1] = nullptr;
     eye_framebuffer[0] = nullptr;
     eye_framebuffer[1] = nullptr;
-    duplication_shader = nullptr;
-    square_buffer = nullptr;
-    square_array = nullptr;
 #endif
 }
 
@@ -40,9 +37,6 @@ Window::~Window() {
         delete eye_framebuffer[1];
         delete eye_texture[0];
         delete eye_texture[1];
-        delete duplication_shader;
-        delete square_array;
-        delete square_buffer;
     }
 #endif
     if (window) {
@@ -51,7 +45,7 @@ Window::~Window() {
     }
 }
 
-bool Window::initialize(uint32_t width, uint32_t height, bool debug) {
+bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool debug) {
     // TODO check if GLFW is already initialized
     
     // Print libraries infos
@@ -142,9 +136,9 @@ bool Window::initialize(uint32_t width, uint32_t height, bool debug) {
     
 #ifndef GLOW_NO_OPENVR
     
-    // TODO check if VR is disabled in config
-    
     // Check VR capabilities
+    if (!stereoscopy)
+        return true;
     if (!vr::VR_IsHmdPresent()) {
         std::cout << "No head mounted display present" << std::endl;
         return true;
@@ -188,8 +182,12 @@ bool Window::initialize(uint32_t width, uint32_t height, bool debug) {
     eye_projection[1] = toGlm(hmd->GetProjectionMatrix(vr::Eye_Right, eye_near, eye_far, vr::API_OpenGL));
     eye_offset[0] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Left));
     eye_offset[1] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right));
+    // TODO why do I have to do this inversion?
+    eye_offset[0][3].x *= -1;
+    eye_offset[1][3].x *= -1;
     // TODO compute distortion at some point?
     hmd->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
+    std::cout << "Eye framebuffer has size " << eye_width << "x" << eye_height << std::endl;
     for (unsigned int i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
         device_type[i] = vr::TrackedDeviceClass_Invalid;
     
@@ -201,26 +199,6 @@ bool Window::initialize(uint32_t width, uint32_t height, bool debug) {
         eye_framebuffer[i]->bind();
         eye_framebuffer[i]->attach(*eye_texture[i]);
         eye_framebuffer[i]->validate();
-    }
-    
-    // Load duplication shader
-    duplication_shader = new Shader();
-    duplication_shader->addSourceFile(GL_VERTEX_SHADER, "Duplication.vs");
-    duplication_shader->addSourceFile(GL_FRAGMENT_SHADER, "Duplication.fs");
-    if (!duplication_shader->link()) {
-        delete duplication_shader;
-        duplication_shader = nullptr;
-    }
-    
-    // Load square
-    if (duplication_shader && square_mesh.load("Square.obj")) {
-        square_buffer->bind(GL_ARRAY_BUFFER);
-        square_buffer->setData(square_mesh.getCount() * 4 * (3 + 2), nullptr, GL_STATIC_DRAW);
-        square_buffer->setSubData(0, square_mesh.getCount() * 4 * 3, square_mesh.getPositions());
-        square_buffer->setSubData(square_mesh.getCount() * 4 * 3, square_mesh.getCount() * 4 * 2, square_mesh.getCoordinates());
-        square_array->bind();
-        square_array->addAttribute(0, 3, GL_FLOAT, 0, 0);
-        square_array->addAttribute(1, 2, GL_FLOAT, 0, square_mesh.getCount() * 4 * 3);
     }
     
 #endif
@@ -381,6 +359,37 @@ bool Window::isDeviceReference(uint32_t index) const {
     return false;    
 }
 
+uint32_t Window::getDeviceHead() const {
+#ifndef GLOW_NO_OPENVR
+    return vr::k_unTrackedDeviceIndex_Hmd;
+#else
+    return ~(uint32_t)0;
+#endif
+}
+
+uint32_t Window::getDeviceController(uint32_t id) const {
+#ifndef GLOW_NO_OPENVR
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        if (device_type[i] == vr::TrackedDeviceClass_Controller) {
+            if (id == 0)
+                return i;
+            --id;
+        }
+#endif
+    return ~(uint32_t)0;
+}
+uint32_t Window::getDeviceReference(uint32_t id) const {
+    #ifndef GLOW_NO_OPENVR
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+        if (device_type[i] == vr::TrackedDeviceClass_TrackingReference) {
+            if (id == 0)
+                return i;
+            --id;
+        }
+#endif
+    return ~(uint32_t)0;
+}
+
 glm::mat4 Window::getDeviceTransform(uint32_t index) const {
 #ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
@@ -421,25 +430,22 @@ bool Window::update() {
         vr::Texture_t right = {(void*)eye_texture[1]->getHandle(), vr::API_OpenGL, vr::ColorSpace::ColorSpace_Linear};
         compositor->Submit(vr::Eye_Left, &left);
         compositor->Submit(vr::Eye_Right, &right);
+        // TODO should we manually flush this? need to check with WaitGetPoses (as for now the camera is jittering)
+        //glFlush();
+        //vr::VRCompositor()->PostPresentHandoff();
         
         // Render content on screen
         // TODO add option to disable this behaviour
-        if (square_array) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-            square_array->bind();
-            duplication_shader->use();
-            duplication_shader->setUniform("texture", 0);
-            duplication_shader->setUniform("transform", -0.51f);
-            eye_texture[0]->bind(0);
-            glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
-            duplication_shader->setUniform("transform", 0.51f);
-            eye_texture[1]->bind(0);
-            glDrawArrays(GL_TRIANGLES, 0, square_mesh.getCount());
+        if (true) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, eye_framebuffer[0]->getHandle());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            glBlitFramebuffer(0, 0, eye_width, eye_height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
         
         // Update tracked device for next frame
+        // TODO WaitGetPoses is equivalent to vsync:
+        // - should disable screen vsync
+        // - should start to render new frame before that
         compositor->WaitGetPoses(device, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
         for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
             vr::ETrackedDeviceClass type = hmd->GetTrackedDeviceClass(i);
@@ -461,9 +467,10 @@ bool Window::update() {
                 }
             }
             if (device[i].bPoseIsValid) {
-                device_transform[i] = toGlm(device[i].mDeviceToAbsoluteTracking);
-                std::swap(device_transform[i][1], device_transform[i][2]);
-                device_transform[i][1] *= -1;
+                // TODO is this transform correct?
+                glm::mat4 t(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
+                device_transform[i] =  t * toGlm(device[i].mDeviceToAbsoluteTracking);
+                // TODO fix axes of velocities
                 device_velocity[i] = toGlm(device[i].vVelocity);
                 device_angularVelocity[i] = toGlm(device[i].vAngularVelocity);
             }

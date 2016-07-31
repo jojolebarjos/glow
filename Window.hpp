@@ -24,7 +24,7 @@ public:
     Window(Window const &) = delete;
     Window & operator=(Window const &) = delete;
     
-    bool initialize(uint32_t width, uint32_t height, bool debug = false);
+    bool initialize(uint32_t width, uint32_t height, bool stereoscopy = false, bool debug = false);
     
     GLFWwindow * getHandle() const;
     uint32_t getWidth() const;
@@ -59,12 +59,14 @@ public:
     Framebuffer * getEyeFramebuffer(unsigned int index);
     glm::mat4 getEyeProjection(unsigned int index) const;
     glm::mat4 getEyeView(unsigned int index) const;
-    // TODO more detailed getters for eyes?
     
     bool isDeviceConnected(uint32_t index) const;
     bool isDeviceHead(uint32_t index) const;
     bool isDeviceController(uint32_t index) const;
     bool isDeviceReference(uint32_t index) const;
+    uint32_t getDeviceHead() const;
+    uint32_t getDeviceController(uint32_t id) const;
+    uint32_t getDeviceReference(uint32_t id) const;
     glm::mat4 getDeviceTransform(uint32_t index) const;
     glm::vec3 getDeviceVelocity(uint32_t index) const;
     glm::vec3 getDeviceAngularVelocity(uint32_t index) const;
@@ -105,12 +107,6 @@ private:
     glm::mat4 eye_projection[2];
     glm::mat4 eye_offset[2];
     glm::mat4 eye_view[2];
-    
-    Shader * duplication_shader;
-    
-    Mesh square_mesh;
-    Buffer * square_buffer;
-    VertexArray * square_array;
     
     vr::TrackedDevicePose_t device[vr::k_unMaxTrackedDeviceCount];
     vr::ETrackedDeviceClass device_type[vr::k_unMaxTrackedDeviceCount];

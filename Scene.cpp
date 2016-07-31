@@ -2,7 +2,7 @@
 #include "Scene.hpp"
 #include "Window.hpp"
 
-Scene::Scene(Window * window) : window(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
+Scene::Scene(Window * window) : window(window), renderer(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
 
 Scene::~Scene() {
     while (!objects.empty())
@@ -87,19 +87,39 @@ void Scene::update() {
     
     // Define render objects
     renderer.clear();
-    renderer.addLight({{1, 1, 2}, 5, {1, 0.8, 0.2}});
+    //renderer.addLight({{1, 1, 2}, 5, {1, 0.8, 0.2}});
     renderer.addLight({{-1, 0, 3}, 5, {0.2, 0.4, 1}});
     for (Object * object : objects) {
         object->mesh.transform = object->getTransform();
         renderer.addMesh(object->mesh);
     }
     
+    // Special objects for VR
+    if (window->hasStereoscopy()) {
+        Renderer::MeshInfo m;
+        m.color = 0;
+        m.mesh = 1;
+        m.transform = window->getDeviceTransform(window->getDeviceReference(0)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
+        renderer.addMesh(m);
+        m.transform = window->getDeviceTransform(window->getDeviceReference(1)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
+        renderer.addMesh(m);
+        m.transform = window->getDeviceTransform(window->getDeviceController(0)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
+        renderer.addMesh(m);
+        Renderer::LightInfo l;
+        l.color = glm::vec3(1.0, 0.7, 0.2);
+        l.position = glm::vec3(window->getDeviceTransform(window->getDeviceController(1)) * glm::vec4(0, 0, 0, 1));
+        l.radius = 6;
+        renderer.addLight(l);
+    }
+    
     // Draw everything
     if (window->hasStereoscopy()) {
+        glViewport(0, 0, window->getEyeWidth(), window->getEyeHeight());
         for (unsigned int i = 0; i < 2; ++i)
             renderer.render(window->getEyeFramebuffer(i)->getHandle(), window->getEyeProjection(i), window->getEyeView(i));
     } else {
         glm::mat4 projection = glm::perspective(PI / 3.0f, (float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f);
+        glViewport(0, 0, window->getWidth(), window->getHeight());
         renderer.render(0, projection, view);
     }
     
