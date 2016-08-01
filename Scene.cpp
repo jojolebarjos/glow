@@ -69,7 +69,7 @@ void Scene::update() {
     
     // Add cube if requested
     static bool just = false;
-    if (window->isKeyboardButtonPressed(GLFW_KEY_SPACE) || (!just && window->isDeviceButtonDown(window->getDeviceController(0), 33))) {
+    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->isDeviceButtonDown(window->getDeviceController(0), 33))) {
         addCube({5, 0, 5});
         just = true;
         source->play();

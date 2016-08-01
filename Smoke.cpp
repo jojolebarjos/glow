@@ -80,10 +80,10 @@ void Smoke::update() {
         else if (window->isDeviceButtonDown(device, 1))
             mode = 1;
     } else {
-        new_location = window->getMouseLocation();
-        if (window->isMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT))
+        new_location = window->getMouse()->getPosition();
+        if (window->getMouse()->isButtonDown(GLFW_MOUSE_BUTTON_LEFT))
             mode = 1;
-        else if (window->isMouseButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+        else if (window->getMouse()->isButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
             mode = 2;
     }
     
@@ -128,7 +128,7 @@ void Smoke::update() {
         glViewport(0, 0, window->getEyeWidth(), window->getEyeHeight());
         render_3d.use();
         render_3d.setUniform("previous", current);
-        render_3d.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
+        render_3d.setUniform("mode", window->getKeyboard()->isButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
         render_3d.setUniform("model", glm::mat4(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
         for (int i = 0; i < 2; ++i) {
             window->getEyeFramebuffer(i)->bind();
@@ -141,7 +141,7 @@ void Smoke::update() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         render.use();
         render.setUniform("previous", current);
-        render.setUniform("mode", window->isKeyboardButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
+        render.setUniform("mode", window->getKeyboard()->isButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
         glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
     }
 }

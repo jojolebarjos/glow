@@ -10,6 +10,11 @@
 #include "VertexArray.hpp"
 #include "Mesh.hpp"
 
+#include "Gamepad.hpp"
+#include "Mouse.hpp"
+#include "Keyboard.hpp"
+#include "Joystick.hpp"
+
 #ifndef GLOW_NO_OPENVR
 // See tunabrain's workaround for MinGW: https://github.com/ValveSoftware/openvr/issues/133
 #include <openvr_mingw.hpp>
@@ -35,23 +40,9 @@ public:
     
     bool hasFocus() const;
     
-    bool isMouseButtonDown(uint32_t index) const;
-    bool isMouseButtonPressed(uint32_t index) const;
-    bool isMouseButtonReleased(uint32_t index) const;
-    // TODO mouse scroll
-    glm::vec2 getMouseLocation() const;
-    // TODO mouse capture?
-    
-    bool isKeyboardButtonDown(uint32_t index) const;
-    bool isKeyboardButtonPressed(uint32_t index) const;
-    bool isKeyboardButtonReleased(uint32_t index) const;
-    // TODO text input? clipboard?
-    
-    bool isGamepadConnected(uint32_t index) const;
-    uint32_t getGamepadAxisCount(uint32_t index) const;
-    float getGamepadAxis(uint32_t index, uint32_t axis_index) const;
-    uint32_t getGamepadButtonCount(uint32_t index) const;
-    bool isGamepadButtonDown(uint32_t index, uint32_t button_index) const;
+    Mouse const * getMouse() const;
+    Keyboard const * getKeyboard() const;
+    Joystick const * getJoystick(uint32_t index) const;
     
     bool hasStereoscopy() const;
     uint32_t getEyeWidth() const;
@@ -86,18 +77,9 @@ private:
     double time;
     double dt;
     
-    int current;
-    char mouse_button[2][GLFW_MOUSE_BUTTON_LAST + 1];
-    char keyboard_button[2][GLFW_KEY_LAST + 1];
-    
-    struct Gamepad {
-        bool connected;
-        uint32_t axis_count;
-        float axis[16];
-        uint32_t button_count;
-        bool button[16];
-    };
-    Gamepad gamepad[4];
+    Mouse * mouse;
+    Keyboard * keyboard;
+    Joystick * joystick[4];
     
 #ifndef GLOW_NO_OPENVR
     

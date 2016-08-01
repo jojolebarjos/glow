@@ -16,8 +16,12 @@ static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum
     std::cout << glGetFriendlyName(source) << ':' << glGetFriendlyName(type) << ':' << glGetFriendlyName(severity) << ' ' << message << std::endl;
 }
 
-Window::Window() {
+Window::Window()  {
     window = nullptr;
+    mouse = nullptr;
+    keyboard = nullptr;
+    for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
+        joystick[i] = nullptr;
 #ifndef GLOW_NO_OPENVR
     hmd = nullptr;
     eye_width = 0;
@@ -30,6 +34,10 @@ Window::Window() {
 }
 
 Window::~Window() {
+    delete mouse;
+    delete keyboard;
+    for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
+        delete joystick[i];
 #ifndef GLOW_NO_OPENVR
     if (hmd) {
         vr::VR_Shutdown();
@@ -111,28 +119,14 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
     std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "Screen framebuffer has size " << w << "x" << h << std::endl;
     
-    // Initialize time
+    // Initialize data
     time = 0.0;
     glfwSetTime(0.0);
     dt = 0.01;
-    
-    // Initialize mouse and keyboard
-    current = 0;
-    for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i) {
-        mouse_button[0][i] = GLFW_RELEASE;
-        mouse_button[1][i] = GLFW_RELEASE;
-    }
-    for (int i = 0; i <= GLFW_KEY_LAST; ++i) {
-        keyboard_button[0][i] = GLFW_RELEASE;
-        keyboard_button[1][i] = GLFW_RELEASE;
-    }
-    
-    // Initialize gamepads
-    for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {
-        gamepad[i].connected = false;
-        gamepad[i].axis_count = 0;
-        gamepad[i].button_count = 0;
-    }
+    mouse = new Mouse(this);
+    keyboard = new Keyboard(this);
+    for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
+        joystick[i] = new Joystick(i);
     
 #ifndef GLOW_NO_OPENVR
     
@@ -229,54 +223,16 @@ bool Window::hasFocus() const {
     return glfwGetWindowAttrib(window, GLFW_FOCUSED);
 }
 
-bool Window::isMouseButtonDown(uint32_t index) const {
-    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current][index] == GLFW_PRESS : false;
+Mouse const * Window::getMouse() const {
+    return mouse;
 }
 
-bool Window::isMouseButtonPressed(uint32_t index) const {
-    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current ^ 1][index] == GLFW_RELEASE && mouse_button[current][index] == GLFW_PRESS : false;
+Keyboard const * Window::getKeyboard() const {
+    return keyboard;
 }
 
-bool Window::isMouseButtonReleased(uint32_t index) const {
-    return index <= GLFW_MOUSE_BUTTON_LAST ? mouse_button[current ^ 1][index] == GLFW_PRESS && mouse_button[current][index] == GLFW_RELEASE : false;
-}
-
-glm::vec2 Window::getMouseLocation() const {
-    double x, y;
-    glfwGetCursorPos(window, &x, &y);
-    return {x, height - y};
-}
-
-bool Window::isKeyboardButtonDown(uint32_t index) const {
-    return index <= GLFW_KEY_LAST ? keyboard_button[current][index] == GLFW_PRESS : false;
-}
-
-bool Window::isKeyboardButtonPressed(uint32_t index) const {
-    return index <= GLFW_KEY_LAST ? keyboard_button[current ^ 1][index] == GLFW_RELEASE && keyboard_button[current][index] == GLFW_PRESS : false;
-}
-
-bool Window::isKeyboardButtonReleased(uint32_t index) const {
-    return index <= GLFW_KEY_LAST ? keyboard_button[current ^ 1][index] == GLFW_PRESS && keyboard_button[current][index] == GLFW_RELEASE : false;
-}
-
-bool Window::isGamepadConnected(uint32_t index) const {
-    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].connected : false;
-}
-
-uint32_t Window::getGamepadAxisCount(uint32_t index) const {
-    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].axis_count : 0;
-}
-
-float Window::getGamepadAxis(uint32_t index, uint32_t axis_index) const {
-    return index < sizeof(gamepad) / sizeof(Gamepad) && axis_index < gamepad[index].axis_count ? gamepad[index].axis[axis_index] : 0.0f;
-}
-
-uint32_t Window::getGamepadButtonCount(uint32_t index) const {
-    return index < sizeof(gamepad) / sizeof(Gamepad) ? gamepad[index].button_count : 0;
-}
-
-bool Window::isGamepadButtonDown(uint32_t index, uint32_t button_index) const {
-    return index < sizeof(gamepad) / sizeof(Gamepad) && button_index < gamepad[index].button_count ? gamepad[index].button[button_index] : false;
+Joystick const * Window::getJoystick(uint32_t index) const {
+    return index < sizeof(joystick) / sizeof(Joystick) ? joystick[index] : nullptr;
 }
 
 bool Window::hasStereoscopy() const {
@@ -510,32 +466,11 @@ bool Window::update() {
     glfwPollEvents();
     glfwSwapBuffers(window);
     
-    // Update mouse and keyboard
-    current ^= 1;
-    for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i)
-        mouse_button[current][i] = glfwGetMouseButton(window, i);
-    for (int i = 0; i <= GLFW_KEY_LAST; ++i)
-        keyboard_button[current][i] = glfwGetKey(window, i);
-    
     // Update gamepads
-    for (uint32_t i = 0; i < sizeof(gamepad) / sizeof(Gamepad); ++i) {
-        bool connected = glfwJoystickPresent(GLFW_JOYSTICK_1 + i);
-        if (connected) {
-            if (!gamepad[i].connected)
-                std::cout << "Gamepad " << i << " connected" << std::endl;
-            int count;
-            float const * axis = glfwGetJoystickAxes(i, &count);
-            gamepad[i].axis_count = glm::max((unsigned)count, sizeof(gamepad[i].axis) / sizeof(gamepad[i].axis[0]));
-            for (uint32_t j = 0; j < gamepad[i].axis_count; ++j)
-                gamepad[i].axis[j] = axis[j];
-            unsigned char const * button = glfwGetJoystickButtons(i, &count);
-            gamepad[i].button_count = glm::max((unsigned)count, sizeof(gamepad[i].button) / sizeof(gamepad[i].button[0]));
-            for (uint32_t j = 0; j < gamepad[i].button_count; ++j)
-                gamepad[i].button[j] = button[j] == GLFW_PRESS;
-        } else if (gamepad[i].connected)
-            std::cout << "Gamepad " << i << " disconnected" << std::endl;
-        gamepad[i].connected = connected;
-    }
+    mouse->update();
+    keyboard->update();
+    for (uint32_t i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
+        joystick[i]->update();
     
     // Update time
     double now = glfwGetTime();

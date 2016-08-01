@@ -259,7 +259,7 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
     glDisable(GL_STENCIL_TEST);
     glDepthMask(GL_TRUE);
     
-    if (window->isKeyboardButtonDown(GLFW_KEY_A)) {
+    if (window->getKeyboard()->isButtonDown(GLFW_KEY_A)) {
 
         // Combine result on screen
         // TODO bloom, hdr, tone mapping, gamma correction
