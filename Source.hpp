@@ -8,17 +8,22 @@
 
 class Source {
     friend class Listener;
+    friend class Sound;
 public:
 
     Source(Source const &) = delete;
     Source & operator=(Source const &) = delete;
 
-    // TODO add setSound here instead of in Listener addSource
+    void setLooping(bool looping);
+    bool isLooping() const;
     
     void setPosition(glm::vec3 const & position);
     glm::vec3 getPosition() const;
+    
+    void setVelocity(glm::vec3 const & velocity);
+    glm::vec3 getVelocity() const;
 
-    // TODO relative, velocity, direction, pitch, attenuation, gain, looping
+    // TODO relative, direction, pitch, attenuation, gain
 
     void play();
     // TODO allow pause/resume?
@@ -34,18 +39,18 @@ private:
     Source(Listener * listener);
     ~Source() = default;
 
-#ifndef GLOW_NO_OPENAL
-    
     Listener * listener;
     std::list<Source *>::iterator iterator;
     bool released;
 
+#ifndef GLOW_NO_OPENAL
     Listener::Binding * binding;
+#endif
 
     Sound * sound;
+    bool looping;
     glm::vec3 position;
-
-#endif
+    glm::vec3 velocity;
     
 };
 

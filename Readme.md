@@ -6,11 +6,9 @@
 
 ## ToDo list
 
-* Sound stream using circular buffers
 * Audio source priorities, to avoid hard limitation and release some CPU usage
 * Reduce audio update frequency to release some CPU usage
 * EFX effects and filters
-* Source pause/resume capabilities
 * [Gamma correction](http://learnopengl.com/#!Advanced-Lighting/Gamma-Correction)
 * [HDR](http://learnopengl.com/#!Advanced-Lighting/HDR)
 * [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)

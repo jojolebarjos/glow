@@ -49,10 +49,12 @@ bool Scene::initialize() {
     
     // Prepare listener
     sound = nullptr;
+    source = nullptr;
     if (listener.initialize()) {
         Sampler sampler;
         sampler.load("Test.wav", Sampler::LEFT);
         sound = listener.addSoundBuffer(sampler);
+        source = listener.addSource(sound);
     }
     
     return true;
@@ -66,15 +68,14 @@ void Scene::update() {
     time = now;
     
     // Add cube if requested
-    if (window->isKeyboardButtonPressed(GLFW_KEY_SPACE)) {
+    static bool just = false;
+    if (window->isKeyboardButtonPressed(GLFW_KEY_SPACE) || (!just && window->isDeviceButtonDown(window->getDeviceController(0), 33))) {
         addCube({5, 0, 5});
-        if (sound) {
-            Source * source = listener.addSource(sound);
-            source->setPosition({5, 0, 0});
-            source->play();
-            source->release();
-        }
+        just = true;
+        source->play();
     }
+    if (!window->isDeviceButtonDown(window->getDeviceController(0), 33))
+        just = false;
     
     // Simulate world
     world->stepSimulation(delta, 10);
@@ -110,6 +111,13 @@ void Scene::update() {
         l.position = glm::vec3(window->getDeviceTransform(window->getDeviceController(1)) * glm::vec4(0, 0, 0, 1));
         l.radius = 6;
         renderer.addLight(l);
+        listener.setTransform(window->getDeviceTransform(window->getDeviceHead()));
+        listener.setVelocity(window->getDeviceVelocity(window->getDeviceHead()));
+        source->setPosition(window->getDevicePosition(window->getDeviceController(0)));
+        source->setVelocity(window->getDeviceVelocity(window->getDeviceController(0)));
+    } else {
+        listener.setPosition(position);
+        listener.setOrientation(target - position, up);
     }
     
     // Draw everything
@@ -124,8 +132,6 @@ void Scene::update() {
     }
     
     // Update audio
-    listener.setPosition(position);
-    listener.setOrientation(target - position, up);
     listener.update();
     
 }

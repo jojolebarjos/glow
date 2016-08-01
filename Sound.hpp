@@ -15,22 +15,35 @@ public:
     Sound(Sound const &) = delete;
     Sound & operator=(Sound const &) = delete;
     
+    bool isStream() const;
     // TODO keep infos about sound (format, duration...)?
     
     // TODO release?
     
 private:
     
-    Sound(Sampler * sampler);
-    // TODO streaming sampler constructor
+    Sound(Sampler * sampler, bool stream);
     ~Sound();
+    
+    Sampler * sampler;
     
 #ifndef GLOW_NO_OPENAL
     
+    uint32_t fill(ALuint buffer, uint32_t samples, bool loop);
+    
+    void unqueue();
+    void queue();
+    
+    bool attach(Source * source);
+    void detach();
+    
+    void update();
+    
     ALuint handle;
     
-    // TODO streaming buffers
-    // TODO flag to know whether the stream is playing, to forbid multiple sources
+    Source * source;
+    ALuint cycle[5];
+    std::vector<ALuint> available;
     
 #endif
 

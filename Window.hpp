@@ -67,6 +67,7 @@ public:
     uint32_t getDeviceHead() const;
     uint32_t getDeviceController(uint32_t id) const;
     uint32_t getDeviceReference(uint32_t id) const;
+    glm::vec3 getDevicePosition(uint32_t index) const;
     glm::mat4 getDeviceTransform(uint32_t index) const;
     glm::vec3 getDeviceVelocity(uint32_t index) const;
     glm::vec3 getDeviceAngularVelocity(uint32_t index) const;

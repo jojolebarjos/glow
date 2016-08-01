@@ -390,6 +390,10 @@ uint32_t Window::getDeviceReference(uint32_t id) const {
     return ~(uint32_t)0;
 }
 
+glm::vec3 Window::getDevicePosition(uint32_t index) const {
+    return glm::vec3(getDeviceTransform(index) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
 glm::mat4 Window::getDeviceTransform(uint32_t index) const {
 #ifndef GLOW_NO_OPENVR
     if (index < vr::k_unMaxTrackedDeviceCount)
@@ -475,11 +479,10 @@ bool Window::update() {
                 }
             }
             if (device[i].bPoseIsValid) {
-                // TODO is this transform correct?
-                glm::mat4 t(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1);
+                glm::mat4 t(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
                 device_transform[i] =  t * toGlm(device[i].mDeviceToAbsoluteTracking);
-                // TODO fix axes of velocities
-                device_velocity[i] = toGlm(device[i].vVelocity);
+                device_velocity[i] = glm::vec3(t * glm::vec4(toGlm(device[i].vVelocity), 0.0f));
+                // TODO fix axes of angular velocity?
                 device_angularVelocity[i] = toGlm(device[i].vAngularVelocity);
             }
             if (type == vr::TrackedDeviceClass_Controller) {

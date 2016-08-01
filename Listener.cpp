@@ -3,11 +3,14 @@
 #include "Source.hpp"
 #include "Sound.hpp"
 
+Listener::Listener()
 #ifndef GLOW_NO_OPENAL
-
-Listener::Listener() : device(nullptr), context(nullptr), efx(false) {}
+: device(nullptr), context(nullptr), efx(false)
+#endif
+{}
 
 Listener::~Listener() {
+#ifndef GLOW_NO_OPENAL
     if (device) {
         if (context) {
             
@@ -28,9 +31,11 @@ Listener::~Listener() {
         }
         alcCloseDevice(device);
     }
+#endif
 }
 
 bool Listener::initialize() {
+#ifndef GLOW_NO_OPENAL
     
     // Only one context is allowed
     if (alcGetCurrentContext()) {
@@ -86,14 +91,20 @@ bool Listener::initialize() {
         bindings.push_back(new Binding({handle, nullptr}));
     }
     return true;
+    
+#else
+    std::cout << "OpenAL is not available" << std::endl;
+    return false;
+#endif
 }
 
 void Listener::update() {
+#ifndef GLOW_NO_OPENAL
     
     // TODO defer some parameter updates? i.e. position and reverb parameters
+    // TODO reduce CPU overload by doing these checks at a lower frequency
     
     // Check if sources have ended
-    // TODO reduce CPU overload by doing this check at a lower frequency
     ALint state;
     for (Binding * binding : bindings)
         if (binding->source) {
@@ -102,73 +113,103 @@ void Listener::update() {
                 binding->source->stop();
         }
     
-    // TODO update streamed sound
+    // Update streamed sounds
+    for (Sound * sound : sounds)
+        sound->update();
+    
+#endif
 }
 
 void Listener::setPosition(glm::vec3 const & position) {
+#ifndef GLOW_NO_OPENAL
     alListener3f(AL_POSITION, position.x, position.y, position.z);
+#endif
 }
 
 glm::vec3 Listener::getPosition() {
     glm::vec3 position;
+#ifndef GLOW_NO_OPENAL
     alGetListener3f(AL_POSITION, &position.x, &position.y, &position.z);
+#endif
     return position;
 }
 
 void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {
+#ifndef GLOW_NO_OPENAL
     ALfloat orientation[] = {forward.x, forward.y, forward.z, up.x, up.y, up.z};
     alListenerfv(AL_ORIENTATION, orientation);
-}
-
-Sound * Listener::addSoundBuffer(Sampler & sampler) {
-    Sound * sound = new Sound(&sampler);
-    sounds.push_front(sound);
-    return sound;
-}
-
-Sound * Listener::addSoundStream(Sampler * sampler) {
-    // TODO sound stream
-    return nullptr;
-}
-
-Source * Listener::addSource(Sound * sound) {
-    Source * source = new Source(this);
-    sources.push_front(source);
-    source->iterator = sources.begin();
-    source->sound = sound;
-    return source;
-}
-
-#else
-
-Listener::Listener() {}
-
-Listener::~Listener() {}
-
-bool Listener::initialize() {
-    return false;
-}
-
-void Listener::update() {}
-
-void Listener::setPosition(glm::vec3 const & position) {}
-
-glm::vec3 Listener::getPosition() {
-    return glm::vec3();
-}
-
-void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {}
-
-Sound * Listener::addSoundBuffer(Sampler & sampler) {
-    return nullptr;
-}
-
-Sound * Listener::addSoundStream(Sampler * sampler) {
-    return nullptr;
-}
-
-Source * Listener::addSource(Sound * sound) {
-    return nullptr;
-}
-
 #endif
+}
+
+void Listener::getOrientation(glm::vec3 & forward, glm::vec3 & up) {
+#ifndef GLOW_NO_OPENAL
+    ALfloat orientation[6];
+    alListenerfv(AL_ORIENTATION, orientation);
+    forward.x = orientation[0];
+    forward.y = orientation[1];
+    forward.z = orientation[2];
+    up.x = orientation[3];
+    up.y = orientation[4];
+    up.z = orientation[5];
+#else
+    forward = glm::vec3(0.0f, 0.0f, -1.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
+#endif
+}
+
+void Listener::setTransform(glm::mat4 const & transform) {
+    setPosition(glm::vec3(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
+    setOrientation(
+        glm::vec3(transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)),
+        glm::vec3(transform * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))
+    );
+}
+
+void Listener::setVelocity(glm::vec3 const & velocity) {
+#ifndef GLOW_NO_OPENAL
+    alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+#endif
+}
+
+glm::vec3 Listener::getVelocity() const {
+    glm::vec3 velocity;
+#ifndef GLOW_NO_OPENAL
+    alGetListener3f(AL_VELOCITY, &velocity.x, &velocity.y, &velocity.z);
+#endif
+    return velocity;
+}
+
+Sound * Listener::addSoundBuffer(Sampler & sampler) {
+#ifndef GLOW_NO_OPENAL
+    if (device) {
+        Sound * sound = new Sound(&sampler, false);
+        sounds.push_front(sound);
+        return sound;
+    }
+#endif
+    return nullptr;
+}
+
+Sound * Listener::addSoundStream(Sampler * sampler) {
+#ifndef GLOW_NO_OPENAL
+    if (device) {
+        Sound * sound = new Sound(sampler, true);
+        sounds.push_front(sound);
+        return sound;
+    }
+#endif
+    return nullptr;
+}
+
+Source * Listener::addSource(Sound * sound) {
+#ifndef GLOW_NO_OPENAL
+    if (device && sound) {
+        Source * source = new Source(this);
+        sources.push_front(source);
+        source->iterator = sources.begin();
+        source->sound = sound;
+        return source;
+    }
+#endif
+    return nullptr;
+}

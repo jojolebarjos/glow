@@ -32,6 +32,7 @@ private:
     
     Listener listener;
     Sound * sound;
+    Source * source;
     
     // TODO do we need to encapsulate physics in dedicated classes?
     
