@@ -113,6 +113,25 @@ void Source::play() {
 #endif
 }
 
+void Source::pause() {
+#ifndef GLOW_NO_OPENAL
+    if (isPlaying() && !paused) {
+        alSourcePause(binding->handle);
+        paused = true;
+    }
+#endif
+}
+
+void Source::resume() {
+#ifndef GLOW_NO_OPENAL
+    if (paused) {
+        alSourcePlay(binding->handle);
+        paused = false;
+    }
+#endif
+}
+
+
 void Source::stop() {
     
 #ifndef GLOW_NO_OPENAL
@@ -122,6 +141,7 @@ void Source::stop() {
         sound->detach();
         binding->source = nullptr;
         binding = nullptr;
+        paused = false;
     }
 #endif
     
@@ -140,6 +160,14 @@ bool Source::isPlaying() const {
 #endif
 }
 
+bool Source::isPaused() const {
+#ifndef GLOW_NO_OPENAL
+    return paused;
+#else
+    return false;
+#endif
+}
+
 void Source::release() {
     released = true;
     if (!isPlaying())
@@ -148,6 +176,6 @@ void Source::release() {
 
 Source::Source(Listener * listener) : listener(listener), released(false),
 #ifndef GLOW_NO_OPENAL
-    binding(nullptr),
+    binding(nullptr), paused(false),
 #endif
     looping(false) {}

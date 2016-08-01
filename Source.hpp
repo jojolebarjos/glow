@@ -26,10 +26,12 @@ public:
     // TODO relative, direction, pitch, attenuation, gain
 
     void play();
-    // TODO allow pause/resume?
+    void pause();
+    void resume();
     void stop();
 
     bool isPlaying() const;
+    bool isPaused() const;
 
     // Note: the source is released as soon as the sound ends
     void release();
@@ -45,6 +47,7 @@ private:
 
 #ifndef GLOW_NO_OPENAL
     Listener::Binding * binding;
+    bool paused;
 #endif
 
     Sound * sound;

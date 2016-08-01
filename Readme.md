@@ -6,7 +6,6 @@
 
 ## ToDo list
 
-* Audio source priorities, to avoid hard limitation and release some CPU usage
 * Reduce audio update frequency to release some CPU usage
 * EFX effects and filters
 * [Gamma correction](http://learnopengl.com/#!Advanced-Lighting/Gamma-Correction)

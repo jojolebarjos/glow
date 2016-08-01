@@ -77,12 +77,19 @@ public:
     glm::vec3 getVelocity() const;
     
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
-    
+   
     // Note: a stream can only used by one source at a time
     Sound * addSoundBuffer(Sampler & sampler);
     Sound * addSoundStream(Sampler * sampler);
     
     Source * addSource(Sound * sound);
+    // TODO add source priority system to avoid hard limitation and reduce CPU usage?
+    
+    // TODO add sound group
+    // - can play/pause/stop whole group
+    // - source can be relative to player, relative to group, or absolute
+    // - group can have parent group
+    // - releasing a group release everything
     
 private:
 
