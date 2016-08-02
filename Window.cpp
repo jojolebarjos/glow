@@ -314,7 +314,8 @@ bool Window::update() {
             if (controller[i]->index >= 0) {
                 controller[i]->transform = t * toGlm(device[controller[i]->index].mDeviceToAbsoluteTracking);
                 controller[i]->velocity = glm::vec3(t * glm::vec4(toGlm(device[controller[i]->index].vVelocity), 0.0f));
-                hmd->GetControllerState(controller[i]->index, &controller[i]->state);
+                controller[i]->current ^= 1;
+                hmd->GetControllerState(controller[i]->index, &controller[i]->state[controller[i]->current]);
             }
         
         // TODO poll events?

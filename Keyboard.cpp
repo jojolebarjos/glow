@@ -15,16 +15,16 @@ uint32_t Keyboard::getButtonCount() const {
     return GLFW_KEY_LAST + 1;
 }
 
-bool Keyboard::isButtonDown(uint32_t id) const {
-    return id <= GLFW_KEY_LAST ? button[current][id] == GLFW_PRESS : false;
+boolx Keyboard::getButton(uint32_t id) const {
+    return id <= GLFW_KEY_LAST ? boolx(button[current ^ 1][id] == GLFW_PRESS, button[current][id] == GLFW_PRESS) : boolx();
 }
 
-bool Keyboard::isButtonPressed(uint32_t id) const {
-    return id <= GLFW_KEY_LAST ? button[current ^ 1][id] == GLFW_RELEASE && button[current][id] == GLFW_PRESS : false;
+boolx Keyboard::getPrimaryButton() const {
+    return getButton(GLFW_KEY_SPACE);
 }
 
-bool Keyboard::isButtonReleased(uint32_t id) const {
-    return id <= GLFW_KEY_LAST ? button[current ^ 1][id] == GLFW_PRESS && button[current][id] == GLFW_RELEASE : false;
+boolx Keyboard::getSecondaryButton() const {
+    return getButton(GLFW_KEY_ENTER);
 }
 
 void Keyboard::update() {

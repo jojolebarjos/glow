@@ -11,7 +11,7 @@ uint32_t Joystick::getAxisCount() const {
     return axis_count;
 }
 
-float Joystick::getAxisValue(uint32_t id) const {
+float Joystick::getAxis(uint32_t id) const {
     return id < axis_count ? axis[id] : 0.0f;
 }
 
@@ -19,18 +19,16 @@ uint32_t Joystick::getButtonCount() const {
     return button_count;
 }
 
-bool Joystick::isButtonDown(uint32_t id) const {
-    return id < button_count ? button[id] : false;
+boolx Joystick::getButton(uint32_t id) const {
+    return id < button_count ? boolx(button[current ^ 1][id], button[current][id]) : boolx();
 }
 
-bool Joystick::isButtonPressed(uint32_t id) const {
-    // TODO joystick button pressed
-    return false;
+boolx Joystick::getPrimaryButton() const {
+    return getButton(0);
 }
 
-bool Joystick::isButtonReleased(uint32_t id) const {
-    // TODO joystick button released
-    return false;
+boolx Joystick::getSecondaryButton() const {
+    return getButton(1);
 }
 
 void Joystick::update() {
@@ -51,16 +49,18 @@ void Joystick::update() {
             axis[j] = new_axis[j];
         
         // Get buttons
+        current ^= 1;
         unsigned char const * new_button = glfwGetJoystickButtons(index, &count);
         button_count = glm::max((unsigned)count, sizeof(button) / sizeof(button[0]));
         for (uint32_t j = 0; j < button_count; ++j)
-            button[j] = new_button[j] == GLFW_PRESS;
+            button[current][j] = new_button[j] == GLFW_PRESS;
         
     } else if (connected) {
         
         // Notify if newly disconnected
         axis_count = 0;
         button_count = 0;
+        // TODO clear states?
         std::cout << "Gamepad " << index << " disconnected" << std::endl;
     }
     connected = new_connected;

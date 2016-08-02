@@ -17,12 +17,13 @@ public:
     bool isConnected() const;
     
     uint32_t getAxisCount() const;
-    float getAxisValue(uint32_t id) const;
+    float getAxis(uint32_t id) const;
     
     uint32_t getButtonCount() const;
-    bool isButtonDown(uint32_t id) const;
-    bool isButtonPressed(uint32_t id) const;
-    bool isButtonReleased(uint32_t id) const;
+    boolx getButton(uint32_t id) const;
+    
+    boolx getPrimaryButton() const;
+    boolx getSecondaryButton() const;
     
     glm::vec2 getPosition() const;
     

@@ -39,6 +39,23 @@
 #undef PI
 #define PI 3.1415926535897932384626433832795f
 
+struct boolx {
+    bool previous, current;
+    
+    boolx(bool current = false) : previous(current), current(current) {}
+    boolx(bool previous, bool current) : previous(previous), current(current) {}
+    operator bool() const { return current; }
+    
+    bool isUp() const { return !current; }
+    bool isReleased() const { return previous && !current; }
+    bool isPressed() const { return !previous && current; }
+    bool isDown() const { return current; }
+};
+
+inline std::ostream & operator<<(std::ostream & out, boolx b) {
+    return out << (b.current ? b.previous ? "down" : "pressed" : b.previous ? "released" : "up");
+}
+
 template <typename T>
 std::ostream & operator<<(std::ostream & out, glm::tvec2<T> const & v) {
     return out << v.x << ',' << v.y;

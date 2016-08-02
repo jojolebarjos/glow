@@ -76,14 +76,10 @@ void Scene::update() {
     time = now;
     
     // Add cube if requested
-    static bool just = false;
-    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->getHead() && window->getController(0)->isButtonDown(33))) {
+    if (window->getKeyboard()->getPrimaryButton().isPressed() || (window->getHead() && window->getController(0)->getPrimaryButton().isPressed())) {
         addCube({5, 0, 5});
-        just = true;
         source->play();
     }
-    if (window->getHead() && !window->getController(0)->isButtonDown(33))
-        just = false;
     
     // Simulate world
     world->stepSimulation(delta, 10);

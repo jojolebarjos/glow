@@ -17,9 +17,10 @@ public:
     bool isConnected() const;
     
     uint32_t getButtonCount() const;
-    bool isButtonDown(uint32_t id) const;
-    bool isButtonPressed(uint32_t id) const;
-    bool isButtonReleased(uint32_t id) const;
+    boolx getButton(uint32_t id) const;
+    
+    boolx getPrimaryButton() const;
+    boolx getSecondaryButton() const;
     
     // TODO text to key id conversion?
     // TODO text input? clipboard?

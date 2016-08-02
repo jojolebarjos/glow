@@ -15,7 +15,7 @@ uint32_t Mouse::getAxisCount() const {
     return 2;
 }
 
-float Mouse::getAxisValue(uint32_t id) const {
+float Mouse::getAxis(uint32_t id) const {
     return id == 0 ? position.x : id == 1 ? position.y : 0.0f;
 }
 
@@ -23,16 +23,16 @@ uint32_t Mouse::getButtonCount() const {
     return GLFW_MOUSE_BUTTON_LAST + 1;
 }
 
-bool Mouse::isButtonDown(uint32_t id) const {
-    return id <= GLFW_MOUSE_BUTTON_LAST ? button[current][id] == GLFW_PRESS : false;
+boolx Mouse::getButton(uint32_t id) const {
+    return id <= GLFW_MOUSE_BUTTON_LAST ? boolx(button[current ^ 1][id] == GLFW_PRESS, button[current][id] == GLFW_PRESS) : boolx();
 }
 
-bool Mouse::isButtonPressed(uint32_t id) const {
-    return id <= GLFW_MOUSE_BUTTON_LAST ? button[current ^ 1][id] == GLFW_RELEASE && button[current][id] == GLFW_PRESS : false;
+boolx Mouse::getPrimaryButton() const {
+    return getButton(GLFW_MOUSE_BUTTON_LEFT);
 }
 
-bool Mouse::isButtonReleased(uint32_t id) const {
-    return id <= GLFW_MOUSE_BUTTON_LAST ? button[current ^ 1][id] == GLFW_PRESS && button[current][id] == GLFW_RELEASE : false;
+boolx Mouse::getSecondaryButton() const {
+    return getButton(GLFW_MOUSE_BUTTON_RIGHT);
 }
 
 glm::vec2 Mouse::getPosition() const {

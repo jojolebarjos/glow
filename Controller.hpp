@@ -20,12 +20,13 @@ public:
     glm::vec3 getVelocity() const;
     
     uint32_t getAxisCount() const;
-    float getAxisValue(uint32_t id) const;
+    float getAxis(uint32_t id) const;
     
     uint32_t getButtonCount() const;
-    bool isButtonDown(uint32_t id) const;
-    bool isButtonPressed(uint32_t id) const;
-    bool isButtonReleased(uint32_t id) const;
+    boolx getButton(uint32_t id) const;
+    
+    boolx getPrimaryButton() const;
+    boolx getSecondaryButton() const;
     
 private:
     
@@ -37,7 +38,8 @@ private:
     glm::mat4 transform;
     glm::vec3 velocity;
 #ifndef GLOW_NO_OPENVR
-    vr::VRControllerState_t state;
+    int current;
+    vr::VRControllerState_t state[2];
 #endif
     
 };

@@ -15,12 +15,13 @@ public:
     bool isConnected() const;
     
     uint32_t getAxisCount() const;
-    float getAxisValue(uint32_t id) const;
+    float getAxis(uint32_t id) const;
     
     uint32_t getButtonCount() const;
-    bool isButtonDown(uint32_t id) const;
-    bool isButtonPressed(uint32_t id) const;
-    bool isButtonReleased(uint32_t id) const;
+    boolx getButton(uint32_t id) const;
+    
+    boolx getPrimaryButton() const;
+    boolx getSecondaryButton() const;
     
     void update();
     
@@ -31,7 +32,8 @@ private:
     uint32_t axis_count;
     float axis[16];
     uint32_t button_count;
-    bool button[16];
+    int current;
+    bool button[2][16];
     
 };
 
