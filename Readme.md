@@ -24,7 +24,7 @@
 * [GLM](http://glm.g-truc.net/)
 * [GLFW 3](http://www.glfw.org/)
 * [lipng](http://www.libpng.org/pub/png/libpng.html)
-* [zlib](http://www.zlib.net/))
+* [zlib](http://www.zlib.net/)
 * [libjpeg](http://libjpeg.sourceforge.net/)
 * [Bullet](https://github.com/bulletphysics/bullet3)
 * [OpenAL Soft](http://kcat.strangesoft.net/openal.html)

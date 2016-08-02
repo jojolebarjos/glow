@@ -22,14 +22,11 @@ Window::Window()  {
     keyboard = nullptr;
     for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
         joystick[i] = nullptr;
+    head = nullptr;
+    for (unsigned i = 0; i < sizeof(controller) / sizeof(controller[0]); ++i)
+        controller[i] = nullptr;
 #ifndef GLOW_NO_OPENVR
     hmd = nullptr;
-    eye_width = 0;
-    eye_height = 0;
-    eye_texture[0] = nullptr;
-    eye_texture[1] = nullptr;
-    eye_framebuffer[0] = nullptr;
-    eye_framebuffer[1] = nullptr;
 #endif
 }
 
@@ -38,14 +35,12 @@ Window::~Window() {
     delete keyboard;
     for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
         delete joystick[i];
+    delete head;
+    for (unsigned i = 0; i < sizeof(controller) / sizeof(controller[0]); ++i)
+        delete controller[i];
 #ifndef GLOW_NO_OPENVR
-    if (hmd) {
+    if (hmd)
         vr::VR_Shutdown();
-        delete eye_framebuffer[0];
-        delete eye_framebuffer[1];
-        delete eye_texture[0];
-        delete eye_texture[1];
-    }
 #endif
     if (window) {
         glfwDestroyWindow(window);
@@ -172,28 +167,33 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
     // TODO provide these near/far somewhere
     float eye_near = 0.01f;
     float eye_far = 1000.0f;
-    eye_projection[0] = toGlm(hmd->GetProjectionMatrix(vr::Eye_Left, eye_near, eye_far, vr::API_OpenGL));
-    eye_projection[1] = toGlm(hmd->GetProjectionMatrix(vr::Eye_Right, eye_near, eye_far, vr::API_OpenGL));
-    eye_offset[0] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Left));
-    eye_offset[1] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right));
+    head = new Head();
+    head->left.setProjection(toGlm(hmd->GetProjectionMatrix(vr::Eye_Left, eye_near, eye_far, vr::API_OpenGL)));
+    head->right.setProjection(toGlm(hmd->GetProjectionMatrix(vr::Eye_Right, eye_near, eye_far, vr::API_OpenGL)));
+    head->offset[0] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Left));
+    head->offset[1] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right));
     // TODO why do I have to do this inversion?
-    eye_offset[0][3].x *= -1;
-    eye_offset[1][3].x *= -1;
+    head->offset[0][3].x *= -1;
+    head->offset[1][3].x *= -1;
     // TODO compute distortion at some point?
-    hmd->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
-    std::cout << "Eye framebuffer has size " << eye_width << "x" << eye_height << std::endl;
+    hmd->GetRecommendedRenderTargetSize(&head->width, &head->height);
+    std::cout << "Eye framebuffer has size " << head->width << "x" << head->height << std::endl;
+    
+    // Create camera framebuffers
+    for (unsigned int i = 0; i < 2; ++i) {
+        head->texture[i].createColor(head->width, head->height);
+        head->framebuffer[i].bind();
+        head->framebuffer[i].attach(head->texture[i]);
+        head->framebuffer[i].validate();
+    }
+    head->left.setFramebuffer(&head->framebuffer[0]);
+    head->right.setFramebuffer(&head->framebuffer[1]);
+    
+    // Initialize controllers
+    for (unsigned i = 0; i < sizeof(controller) / sizeof(controller[0]); ++i)
+        controller[i] = new Controller();
     for (unsigned int i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
         device_type[i] = vr::TrackedDeviceClass_Invalid;
-    
-    // Create framebuffers
-    for (unsigned int i = 0; i < 2; ++i) {
-        eye_texture[i] = new Texture();
-        eye_texture[i]->createColor(eye_width, eye_height);
-        eye_framebuffer[i] = new Framebuffer();
-        eye_framebuffer[i]->bind();
-        eye_framebuffer[i]->attach(*eye_texture[i]);
-        eye_framebuffer[i]->validate();
-    }
     
 #endif
     return true;
@@ -232,154 +232,15 @@ Keyboard const * Window::getKeyboard() const {
 }
 
 Joystick const * Window::getJoystick(uint32_t index) const {
-    return index < sizeof(joystick) / sizeof(Joystick) ? joystick[index] : nullptr;
+    return index < sizeof(joystick) / sizeof(joystick[0]) ? joystick[index] : nullptr;
 }
 
-bool Window::hasStereoscopy() const {
-#ifndef GLOW_NO_OPENVR
-    return hmd;
-#else
-    return false;
-#endif
+Head const * Window::getHead() const {
+    return head;
 }
 
-uint32_t Window::getEyeWidth() const {
-#ifndef GLOW_NO_OPENVR
-    return eye_width;
-#else
-    return 0;
-#endif
-}
-
-uint32_t Window::getEyeHeight() const {
-#ifndef GLOW_NO_OPENVR
-    return eye_height;
-#else
-    return 0;
-#endif
-}
-
-Framebuffer * Window::getEyeFramebuffer(unsigned int index) {
-#ifndef GLOW_NO_OPENVR
-    if (index < 2)
-        return eye_framebuffer[index];
-#endif
-    return nullptr;
-}
-
-glm::mat4 Window::getEyeProjection(unsigned int index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < 2)
-        return eye_projection[index];
-#endif
-    return glm::mat4();
-}
-
-glm::mat4 Window::getEyeView(unsigned int index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < 2)
-        return eye_view[index];
-#endif
-    return glm::mat4();    
-}
-
-bool Window::isDeviceConnected(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_type[index] != vr::TrackedDeviceClass_Invalid;
-#endif
-    return false;
-}
-
-bool Window::isDeviceHead(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_type[index] == vr::TrackedDeviceClass_HMD;
-#endif
-    return false;    
-}
-
-bool Window::isDeviceController(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_type[index] == vr::TrackedDeviceClass_Controller;
-#endif
-    return false;    
-}
-
-bool Window::isDeviceReference(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_type[index] == vr::TrackedDeviceClass_TrackingReference;
-#endif
-    return false;    
-}
-
-uint32_t Window::getDeviceHead() const {
-#ifndef GLOW_NO_OPENVR
-    return vr::k_unTrackedDeviceIndex_Hmd;
-#else
-    return ~(uint32_t)0;
-#endif
-}
-
-uint32_t Window::getDeviceController(uint32_t id) const {
-#ifndef GLOW_NO_OPENVR
-    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
-        if (device_type[i] == vr::TrackedDeviceClass_Controller) {
-            if (id == 0)
-                return i;
-            --id;
-        }
-#endif
-    return ~(uint32_t)0;
-}
-uint32_t Window::getDeviceReference(uint32_t id) const {
-    #ifndef GLOW_NO_OPENVR
-    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
-        if (device_type[i] == vr::TrackedDeviceClass_TrackingReference) {
-            if (id == 0)
-                return i;
-            --id;
-        }
-#endif
-    return ~(uint32_t)0;
-}
-
-glm::vec3 Window::getDevicePosition(uint32_t index) const {
-    return glm::vec3(getDeviceTransform(index) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-}
-
-glm::mat4 Window::getDeviceTransform(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_transform[index];
-#endif
-    return glm::mat4();    
-}
-
-glm::vec3 Window::getDeviceVelocity(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_velocity[index];
-#endif
-    return glm::vec3();
-}
-
-glm::vec3 Window::getDeviceAngularVelocity(uint32_t index) const {
-#ifndef GLOW_NO_OPENVR
-    if (index < vr::k_unMaxTrackedDeviceCount)
-        return device_angularVelocity[index];
-#endif
-    return glm::vec3();
-}
-
-bool Window::isDeviceButtonDown(uint32_t index, uint32_t button_index) const {
-#ifndef GLOW_NO_OPENVR
-    if (isDeviceController(index) && button_index < 64)
-        return (state[index].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button_index)) != 0;
-#endif
-    return false;
+Controller const * Window::getController(uint32_t index) const {
+    return index < sizeof(controller) / sizeof(controller[0]) ? controller[index] : nullptr;
 }
 
 bool Window::update() {
@@ -392,10 +253,10 @@ bool Window::update() {
 #ifndef GLOW_NO_OPENVR
     if (hmd) {
         vr::IVRCompositor * compositor = vr::VRCompositor();
-        
+    
         // Submit texture for this frame
-        vr::Texture_t left = {(void*)eye_texture[0]->getHandle(), vr::API_OpenGL, vr::ColorSpace::ColorSpace_Linear};
-        vr::Texture_t right = {(void*)eye_texture[1]->getHandle(), vr::API_OpenGL, vr::ColorSpace::ColorSpace_Linear};
+        vr::Texture_t left = {(void*)head->texture[0].getHandle(), vr::API_OpenGL, vr::ColorSpace::ColorSpace_Linear};
+        vr::Texture_t right = {(void*)head->texture[1].getHandle(), vr::API_OpenGL, vr::ColorSpace::ColorSpace_Linear};
         compositor->Submit(vr::Eye_Left, &left);
         compositor->Submit(vr::Eye_Right, &right);
         // TODO should we manually flush this? need to check with WaitGetPoses (as for now the camera is jittering)
@@ -405,9 +266,9 @@ bool Window::update() {
         // Render content on screen
         // TODO add option to disable this behaviour
         if (true) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, eye_framebuffer[0]->getHandle());
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, head->framebuffer[0].getHandle());
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-            glBlitFramebuffer(0, 0, eye_width, eye_height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+            glBlitFramebuffer(0, 0, head->width, head->height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
         
         // Update tracked device for next frame
@@ -425,34 +286,39 @@ bool Window::update() {
                         std::cout << "head" << std::endl;
                         break;
                     case vr::TrackedDeviceClass_Controller:
+                        for (unsigned j = 0; j < sizeof(controller) / sizeof(controller[0]); ++j)
+                            if (controller[j]->index < 0)
+                                controller[j]->index = i;
                         std::cout << "controller" << std::endl;
                         break;
                     case vr::TrackedDeviceClass_TrackingReference:
                         std::cout << "tracking reference" << std::endl;
                         break;
                     default:
+                        for (unsigned j = 0; j < sizeof(controller) / sizeof(controller[0]); ++j)
+                            if (controller[j]->index == (int)i)
+                                controller[j]->index = -1;
                         std::cout << "invalid" << std::endl;
                 }
             }
-            if (device[i].bPoseIsValid) {
-                glm::mat4 t(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-                device_transform[i] =  t * toGlm(device[i].mDeviceToAbsoluteTracking);
-                device_velocity[i] = glm::vec3(t * glm::vec4(toGlm(device[i].vVelocity), 0.0f));
-                // TODO fix axes of angular velocity?
-                device_angularVelocity[i] = toGlm(device[i].vAngularVelocity);
-            }
-            if (type == vr::TrackedDeviceClass_Controller) {
-                hmd->GetControllerState(i, &state[i]);
-                //std::cout << state[i].ulButtonPressed << " " << vr::ButtonMaskFromId((vr::EVRButtonId)33) << std::endl;
-            }
         }
         
-        // Update view matrices
+        // Update head and controllers objects
+        glm::mat4 t(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
         if (device[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
-            glm::mat4 matrix = glm::inverse(device_transform[vr::k_unTrackedDeviceIndex_Hmd]);
-            eye_view[0] = eye_offset[0] * matrix;
-            eye_view[1] = eye_offset[1] * matrix;
+            head->transform = t * toGlm(device[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+            head->velocity = glm::vec3(t * glm::vec4(toGlm(device[vr::k_unTrackedDeviceIndex_Hmd].vVelocity), 0.0f));
+            // TODO angular velocity
+            glm::mat4 matrix = glm::inverse(head->transform);
+            head->left.setView(head->offset[0] * matrix);
+            head->right.setView(head->offset[1] * matrix);
         }
+        for (unsigned i = 0; i < sizeof(controller) / sizeof(controller[0]); ++i)
+            if (controller[i]->index >= 0) {
+                controller[i]->transform = t * toGlm(device[controller[i]->index].mDeviceToAbsoluteTracking);
+                controller[i]->velocity = glm::vec3(t * glm::vec4(toGlm(device[controller[i]->index].vVelocity), 0.0f));
+                hmd->GetControllerState(controller[i]->index, &controller[i]->state);
+            }
         
         // TODO poll events?
         // https://github.com/ValveSoftware/openvr/wiki/IVRSystem::PollNextEvent

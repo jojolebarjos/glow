@@ -20,6 +20,11 @@
 #include <AL/efx.h>
 #endif
 
+#ifndef GLOW_NO_OPENVR
+// See tunabrain's workaround for MinGW: https://github.com/ValveSoftware/openvr/issues/133
+#include <openvr_mingw.hpp>
+#endif
+
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 

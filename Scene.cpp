@@ -22,9 +22,9 @@ bool Scene::initialize() {
     
     // Prepare renderer
     uint32_t width, height;
-    if (window->hasStereoscopy()) {
-        width = window->getEyeWidth();
-        height = window->getEyeHeight();
+    if (window->getHead()) {
+        width = window->getHead()->getWidth();
+        height = window->getHead()->getHeight();
     } else {
         width = window->getWidth();
         height = window->getHeight();
@@ -69,12 +69,12 @@ void Scene::update() {
     
     // Add cube if requested
     static bool just = false;
-    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->isDeviceButtonDown(window->getDeviceController(0), 33))) {
+    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->getController(0)->isButtonDown(33))) {
         addCube({5, 0, 5});
         just = true;
         source->play();
     }
-    if (!window->isDeviceButtonDown(window->getDeviceController(0), 33))
+    if (!window->getController(0)->isButtonDown(33))
         just = false;
     
     // Simulate world
@@ -96,35 +96,31 @@ void Scene::update() {
     }
     
     // Special objects for VR
-    if (window->hasStereoscopy()) {
+    if (window->getHead()) {
         Renderer::MeshInfo m;
         m.color = 0;
         m.mesh = 1;
-        m.transform = window->getDeviceTransform(window->getDeviceReference(0)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
-        renderer.addMesh(m);
-        m.transform = window->getDeviceTransform(window->getDeviceReference(1)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
-        renderer.addMesh(m);
-        m.transform = window->getDeviceTransform(window->getDeviceController(0)) * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
+        m.transform = window->getController(0)->getTransform() * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
         renderer.addMesh(m);
         Renderer::LightInfo l;
         l.color = glm::vec3(1.0, 0.7, 0.2);
-        l.position = glm::vec3(window->getDeviceTransform(window->getDeviceController(1)) * glm::vec4(0, 0, 0, 1));
+        l.position = window->getController(1)->getPosition();
         l.radius = 6;
         renderer.addLight(l);
-        listener.setTransform(window->getDeviceTransform(window->getDeviceHead()));
-        listener.setVelocity(window->getDeviceVelocity(window->getDeviceHead()));
-        source->setPosition(window->getDevicePosition(window->getDeviceController(0)));
-        source->setVelocity(window->getDeviceVelocity(window->getDeviceController(0)));
+        listener.setTransform(window->getHead()->getTransform());
+        listener.setVelocity(window->getHead()->getVelocity());
+        source->setPosition(window->getController(0)->getPosition());
+        source->setVelocity(window->getController(0)->getVelocity());
     } else {
         listener.setPosition(position);
         listener.setOrientation(target - position, up);
     }
     
     // Draw everything
-    if (window->hasStereoscopy()) {
-        glViewport(0, 0, window->getEyeWidth(), window->getEyeHeight());
+    if (window->getHead()) {
+        glViewport(0, 0, window->getHead()->getWidth(), window->getHead()->getHeight());
         for (unsigned int i = 0; i < 2; ++i)
-            renderer.render(window->getEyeFramebuffer(i)->getHandle(), window->getEyeProjection(i), window->getEyeView(i));
+            renderer.render(window->getHead()->getEye(i)->getFramebuffer()->getHandle(), window->getHead()->getEye(i)->getProjection(), window->getHead()->getEye(i)->getView());
     } else {
         glm::mat4 projection = glm::perspective(PI / 3.0f, (float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f);
         glViewport(0, 0, window->getWidth(), window->getHeight());

@@ -54,7 +54,7 @@ bool Smoke::initialize() {
 }
 
 void Smoke::update() {
-    
+
     // Bind objects
     glViewport(0, 0, window->getWidth(), window->getHeight());
     array.bind();
@@ -64,9 +64,8 @@ void Smoke::update() {
     // Get input
     int mode = 0;
     glm::vec2 new_location = location;
-    if (window->hasStereoscopy()) {
-        uint32_t device = window->getDeviceController(0);
-        glm::mat4 transform = window->getDeviceTransform(device);
+    if (window->getHead()) {
+        glm::mat4 transform = window->getController(0)->getTransform();
         glm::vec3 position(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         glm::vec3 forward(transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
         if (forward.z < -0.1f) {
@@ -75,9 +74,9 @@ void Smoke::update() {
             new_location.x = (new_location.x + 2.0f) * 0.25f * window->getWidth();
             new_location.y = (new_location.y + 2.0f) * 0.25f * window->getHeight();
         }
-        if (window->isDeviceButtonDown(device, 33))
+        if (window->getController(0)->isButtonDown(33))
             mode = 2;
-        else if (window->isDeviceButtonDown(device, 1))
+        else if (window->getController(0)->isButtonDown(1))
             mode = 1;
     } else {
         new_location = window->getMouse()->getPosition();
@@ -123,18 +122,18 @@ void Smoke::update() {
     glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
 
     // Render fluid
-    if (window->hasStereoscopy()) {
+    if (window->getHead()) {
         // TODO improve 3D rendering (antialiasing, larger area, show controller...)
-        glViewport(0, 0, window->getEyeWidth(), window->getEyeHeight());
+        glViewport(0, 0, window->getHead()->getWidth(), window->getHead()->getHeight());
         render_3d.use();
         render_3d.setUniform("previous", current);
         render_3d.setUniform("mode", window->getKeyboard()->isButtonDown(GLFW_KEY_SPACE) ? 0 : 1);
         render_3d.setUniform("model", glm::mat4(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
         for (int i = 0; i < 2; ++i) {
-            window->getEyeFramebuffer(i)->bind();
+            window->getHead()->getEye(i)->getFramebuffer()->bind();
             glClear(GL_COLOR_BUFFER_BIT);
-            render_3d.setUniform("projection", window->getEyeProjection(i));
-            render_3d.setUniform("view", window->getEyeView(i));
+            render_3d.setUniform("projection", window->getHead()->getEye(i)->getProjection());
+            render_3d.setUniform("view", window->getHead()->getEye(i)->getView());
             glDrawArrays(GL_TRIANGLES, 0, mesh.getCount());
         }
     } else {

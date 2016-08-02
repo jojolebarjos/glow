@@ -19,6 +19,7 @@ public:
     
 protected:
     
+    Actor() = default;
     virtual ~Actor() = default;
     
 };
