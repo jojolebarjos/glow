@@ -168,14 +168,12 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
     float eye_near = 0.01f;
     float eye_far = 1000.0f;
     head = new Head();
+    head->left.setParent(head);
+    head->right.setParent(head);
+    head->left.setRelativeTransform(toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Left)));
+    head->right.setRelativeTransform(toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right)));
     head->left.setProjection(toGlm(hmd->GetProjectionMatrix(vr::Eye_Left, eye_near, eye_far, vr::API_OpenGL)));
     head->right.setProjection(toGlm(hmd->GetProjectionMatrix(vr::Eye_Right, eye_near, eye_far, vr::API_OpenGL)));
-    head->offset[0] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Left));
-    head->offset[1] = toGlm(hmd->GetEyeToHeadTransform(vr::Eye_Right));
-    // TODO why do I have to do this inversion?
-    head->offset[0][3].x *= -1;
-    head->offset[1][3].x *= -1;
-    // TODO compute distortion at some point?
     hmd->GetRecommendedRenderTargetSize(&head->width, &head->height);
     std::cout << "Eye framebuffer has size " << head->width << "x" << head->height << std::endl;
     
@@ -287,8 +285,10 @@ bool Window::update() {
                         break;
                     case vr::TrackedDeviceClass_Controller:
                         for (unsigned j = 0; j < sizeof(controller) / sizeof(controller[0]); ++j)
-                            if (controller[j]->index < 0)
+                            if (controller[j]->index < 0) {
                                 controller[j]->index = i;
+                                break;
+                            }
                         std::cout << "controller" << std::endl;
                         break;
                     case vr::TrackedDeviceClass_TrackingReference:
@@ -309,9 +309,6 @@ bool Window::update() {
             head->transform = t * toGlm(device[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
             head->velocity = glm::vec3(t * glm::vec4(toGlm(device[vr::k_unTrackedDeviceIndex_Hmd].vVelocity), 0.0f));
             // TODO angular velocity
-            glm::mat4 matrix = glm::inverse(head->transform);
-            head->left.setView(head->offset[0] * matrix);
-            head->right.setView(head->offset[1] * matrix);
         }
         for (unsigned i = 0; i < sizeof(controller) / sizeof(controller[0]); ++i)
             if (controller[i]->index >= 0) {

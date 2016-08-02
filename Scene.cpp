@@ -20,6 +20,9 @@ bool Scene::initialize() {
     // Initialize time
     time = 0;
     
+    // Prepare camera
+    camera.setProjection(glm::perspective(PI / 3.0f, (float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f));
+    
     // Prepare renderer
     uint32_t width, height;
     if (window->getHead()) {
@@ -56,6 +59,10 @@ bool Scene::initialize() {
         sound = listener.addSoundBuffer(sampler);
         source = listener.addSource(sound);
     }
+    if (window->getHead())
+        listener.setParent(window->getHead());
+    else
+        listener.setParent(&camera);
     
     return true;
 }
@@ -69,12 +76,12 @@ void Scene::update() {
     
     // Add cube if requested
     static bool just = false;
-    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->getController(0)->isButtonDown(33))) {
+    if (window->getKeyboard()->isButtonPressed(GLFW_KEY_SPACE) || (!just && window->getHead() && window->getController(0)->isButtonDown(33))) {
         addCube({5, 0, 5});
         just = true;
         source->play();
     }
-    if (!window->getController(0)->isButtonDown(33))
+    if (window->getHead() && !window->getController(0)->isButtonDown(33))
         just = false;
     
     // Simulate world
@@ -84,7 +91,7 @@ void Scene::update() {
     glm::vec3 position(glm::cos(time / 3) * 5.0f, glm::sin(time / 3) * 5.0f, 3.0f);
     glm::vec3 target(0.0f, 0.0f, 0.0f);
     glm::vec3 up(0.0f, 0.0f, 1.0f);
-    glm::mat4 view = glm::lookAt(position, target, up);
+    camera.setRelativeTransform(position, target - position, up);
     
     // Define render objects
     renderer.clear();
@@ -107,29 +114,22 @@ void Scene::update() {
         l.position = window->getController(1)->getPosition();
         l.radius = 6;
         renderer.addLight(l);
-        listener.setTransform(window->getHead()->getTransform());
-        listener.setVelocity(window->getHead()->getVelocity());
         source->setPosition(window->getController(0)->getPosition());
         source->setVelocity(window->getController(0)->getVelocity());
-    } else {
-        listener.setPosition(position);
-        listener.setOrientation(target - position, up);
     }
     
     // Draw everything
     if (window->getHead()) {
         glViewport(0, 0, window->getHead()->getWidth(), window->getHead()->getHeight());
         for (unsigned int i = 0; i < 2; ++i)
-            renderer.render(window->getHead()->getEye(i)->getFramebuffer()->getHandle(), window->getHead()->getEye(i)->getProjection(), window->getHead()->getEye(i)->getView());
+            renderer.render(window->getHead()->getEye(i));
     } else {
-        glm::mat4 projection = glm::perspective(PI / 3.0f, (float)window->getWidth() / (float)window->getHeight(), 0.1f, 1000.0f);
         glViewport(0, 0, window->getWidth(), window->getHeight());
-        renderer.render(0, projection, view);
+        renderer.render(&camera);
     }
     
     // Update audio
     listener.update();
-    
 }
 
 Scene::Object::~Object() {

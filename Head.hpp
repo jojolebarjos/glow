@@ -39,7 +39,6 @@ private:
     uint32_t height;
     Texture texture[2];
     Framebuffer framebuffer[2];
-    glm::mat4 offset[2];
 
 };
 

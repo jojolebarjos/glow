@@ -3,12 +3,13 @@
 #define GLOW_LISTENER_HPP
 
 #include "Common.hpp"
+#include "Actor.hpp"
 #include "Sampler.hpp"
 
 class Source;
 class Sound;
 
-class Listener {
+class Listener : public AttachableActor {
     friend class Source;
     friend class Sound;
 public:
@@ -63,18 +64,6 @@ public:
     
     bool initialize();
     void update();
-    
-    void setPosition(glm::vec3 const & position);
-    glm::vec3 getPosition();
-    
-    void setOrientation(glm::vec3 const & forward, glm::vec3 const & up);
-    void getOrientation(glm::vec3 & forward, glm::vec3 & up);
-    
-    void setTransform(glm::mat4 const & transform);
-    // TODO get transform
-    
-    void setVelocity(glm::vec3 const & velocity);
-    glm::vec3 getVelocity() const;
     
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
    

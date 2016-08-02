@@ -151,7 +151,7 @@ void Renderer::clear() {
     meshes.clear();
 }
 
-void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat4 const & view) {
+void Renderer::render(Camera const * camera) {
     
     // Use the same vertex array for everything
     array.bind();
@@ -174,8 +174,8 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
     
     // Select render shader
     render_shader.use();
-    render_shader.setUniform("projection", projection);
-    render_shader.setUniform("view", view);
+    render_shader.setUniform("projection", camera->getProjection());
+    render_shader.setUniform("view", camera->getView());
     
     // Draw textured geometry and store diffuse, emissive, position and normals
     drawTexturedObjects(render_shader);
@@ -211,8 +211,8 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         
         // Select extrusion shader
         extrusion_shader.use();
-        extrusion_shader.setUniform("projection", projection);
-        extrusion_shader.setUniform("view", view);
+        extrusion_shader.setUniform("projection", camera->getProjection());
+        extrusion_shader.setUniform("view", camera->getView());
         extrusion_shader.setUniform("light_position", light.position);
         extrusion_shader.setUniform("light_radius", light.radius);
 
@@ -272,7 +272,10 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         drawSquare();
 
         // Apply FXAA
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (camera->getFramebuffer())
+            camera->getFramebuffer()->bind();
+        else
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         processing_color[0].bind(0);
         antialiasing_shader.use();
         antialiasing_shader.setUniform("texture", 0);
@@ -282,7 +285,10 @@ void Renderer::render(GLuint framebuffer, glm::mat4 const & projection, glm::mat
         
         // Combine result on screen
         // TODO bloom, hdr, tone mapping, gamma correction
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        if (camera->getFramebuffer())
+            camera->getFramebuffer()->bind();
+        else
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         finalize_shader.use();
         finalize_shader.setUniform("texture_color", 0);
         finalize_shader.setUniform("texture_position", 1);

@@ -28,6 +28,7 @@ private:
     
     float time;
     
+    Camera camera;
     Renderer renderer;
     
     Listener listener;

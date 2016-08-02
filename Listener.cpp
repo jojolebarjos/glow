@@ -101,7 +101,17 @@ bool Listener::initialize() {
 void Listener::update() {
 #ifndef GLOW_NO_OPENAL
     
-    // TODO defer some parameter updates? i.e. position and reverb parameters
+    // Update listener location
+    glm::mat4 transform = getTransform();
+    glm::vec3 position(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    glm::vec3 forward(transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+    glm::vec3 up(transform * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+    alListener3f(AL_POSITION, position.x, position.y, position.z);
+    ALfloat orientation[] = {forward.x, forward.y, forward.z, up.x, up.y, up.z};
+    alListenerfv(AL_ORIENTATION, orientation);
+    glm::vec3 velocity = getVelocity();
+    alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+    
     // TODO reduce CPU overload by doing these checks at a lower frequency
     
     // Check if sources have ended
@@ -118,65 +128,6 @@ void Listener::update() {
         sound->update();
     
 #endif
-}
-
-void Listener::setPosition(glm::vec3 const & position) {
-#ifndef GLOW_NO_OPENAL
-    alListener3f(AL_POSITION, position.x, position.y, position.z);
-#endif
-}
-
-glm::vec3 Listener::getPosition() {
-    glm::vec3 position;
-#ifndef GLOW_NO_OPENAL
-    alGetListener3f(AL_POSITION, &position.x, &position.y, &position.z);
-#endif
-    return position;
-}
-
-void Listener::setOrientation(glm::vec3 const & forward, glm::vec3 const & up) {
-#ifndef GLOW_NO_OPENAL
-    ALfloat orientation[] = {forward.x, forward.y, forward.z, up.x, up.y, up.z};
-    alListenerfv(AL_ORIENTATION, orientation);
-#endif
-}
-
-void Listener::getOrientation(glm::vec3 & forward, glm::vec3 & up) {
-#ifndef GLOW_NO_OPENAL
-    ALfloat orientation[6];
-    alListenerfv(AL_ORIENTATION, orientation);
-    forward.x = orientation[0];
-    forward.y = orientation[1];
-    forward.z = orientation[2];
-    up.x = orientation[3];
-    up.y = orientation[4];
-    up.z = orientation[5];
-#else
-    forward = glm::vec3(0.0f, 0.0f, -1.0f);
-    up = glm::vec3(0.0f, 1.0f, 0.0f);
-#endif
-}
-
-void Listener::setTransform(glm::mat4 const & transform) {
-    setPosition(glm::vec3(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
-    setOrientation(
-        glm::vec3(transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)),
-        glm::vec3(transform * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))
-    );
-}
-
-void Listener::setVelocity(glm::vec3 const & velocity) {
-#ifndef GLOW_NO_OPENAL
-    alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-#endif
-}
-
-glm::vec3 Listener::getVelocity() const {
-    glm::vec3 velocity;
-#ifndef GLOW_NO_OPENAL
-    alGetListener3f(AL_VELOCITY, &velocity.x, &velocity.y, &velocity.z);
-#endif
-    return velocity;
 }
 
 Sound * Listener::addSoundBuffer(Sampler & sampler) {

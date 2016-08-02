@@ -9,9 +9,6 @@ public:
     
     static Gamepad const * getNull();
     
-    Gamepad(Gamepad const &) = delete;
-    Gamepad & operator=(Gamepad const &) = delete;
-    
     virtual bool isConnected() const;
     // TODO get name?
     

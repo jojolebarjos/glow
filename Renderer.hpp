@@ -11,6 +11,7 @@
 #include "Shader.hpp"
 #include "Framebuffer.hpp"
 #include "Window.hpp"
+#include "Camera.hpp"
 
 class Renderer {
 public:
@@ -50,7 +51,7 @@ public:
     
     void clear();
     
-    void render(GLuint framebuffer, glm::mat4 const & projection, glm::mat4 const & view);
+    void render(Camera const * camera);
     
 private:
     
