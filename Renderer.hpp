@@ -12,17 +12,12 @@
 #include "Framebuffer.hpp"
 #include "Window.hpp"
 #include "Camera.hpp"
+#include "Model.hpp"
+#include "Light.hpp"
+#include "Material.hpp"
 
 class Renderer {
 public:
-    
-    // TODO hide these structs?
-    
-    struct LightInfo {
-        glm::vec3 position;
-        float radius;
-        glm::vec3 color;
-    };
     
     struct MeshInfo {
         glm::mat4 transform;
@@ -45,7 +40,7 @@ public:
     
     void pack();
     
-    void addLight(LightInfo const & light);
+    void addLight(Light const * light);
     
     void addMesh(MeshInfo const & mesh);
     
@@ -79,7 +74,7 @@ private:
     // TODO use texture array
     std::vector<Texture *> textures;
     
-    std::vector<LightInfo> lights;
+    std::vector<Light const *> lights;
     std::vector<MeshInfo> meshes;
     // TODO other temporary buffers (particles, ...)
     

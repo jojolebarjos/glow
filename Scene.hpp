@@ -7,6 +7,7 @@
 #include "Listener.hpp"
 #include "Source.hpp"
 #include "Window.hpp"
+#include "Light.hpp"
 
 class Scene {
 public:

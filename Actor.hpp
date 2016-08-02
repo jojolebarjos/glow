@@ -14,7 +14,9 @@ public:
     
     virtual glm::mat4 getTransform() const = 0;
     glm::vec3 getPosition() const;
-    // TODO get axes
+    glm::vec3 getForward() const;
+    glm::vec3 getRight() const;
+    glm::vec3 getUp() const;
     
     virtual glm::vec3 getVelocity() const = 0;
     // TODO angular velocity
@@ -37,7 +39,7 @@ public:
     glm::mat4 getRelativeTransform() const;
     void setRelativeTransform(glm::mat4 const & transform);
     void setRelativeTransform(glm::vec3 const & position, glm::vec3 const & forward, glm::vec3 const & up);
-    // TODO set position, set transform from axes/lookat
+    void setRelativePosition(glm::vec3 const & position);
     
     glm::vec3 getVelocity() const;
     // TODO setVelocity

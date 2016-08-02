@@ -95,8 +95,11 @@ void Scene::update() {
     
     // Define render objects
     renderer.clear();
-    //renderer.addLight({{1, 1, 2}, 5, {1, 0.8, 0.2}});
-    renderer.addLight({{-1, 0, 3}, 5, {0.2, 0.4, 1}});
+    Light light;
+    light.setRelativePosition({-1.0f, 0.0f, 3.0f});
+    light.setRadius(5.0f);
+    light.setColor({0.2f, 0.4f, 1.0f});
+    renderer.addLight(&light);
     for (Object * object : objects) {
         object->mesh.transform = object->getTransform();
         renderer.addMesh(object->mesh);
@@ -109,11 +112,11 @@ void Scene::update() {
         m.mesh = 1;
         m.transform = window->getController(0)->getTransform() * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
         renderer.addMesh(m);
-        Renderer::LightInfo l;
-        l.color = glm::vec3(1.0, 0.7, 0.2);
-        l.position = window->getController(1)->getPosition();
-        l.radius = 6;
-        renderer.addLight(l);
+        Light l;
+        l.setParent(window->getController(1));
+        l.setRadius(6.0f);
+        l.setColor({1.0f, 0.7f, 0.2f});
+        renderer.addLight(&l);
         source->setPosition(window->getController(0)->getPosition());
         source->setVelocity(window->getController(0)->getVelocity());
     }

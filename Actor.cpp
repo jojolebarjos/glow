@@ -5,6 +5,18 @@ glm::vec3 Actor::getPosition() const {
     return glm::vec3(getTransform()[3]);
 }
 
+glm::vec3 Actor::getForward() const {
+    return -glm::vec3(getTransform()[2]);
+}
+
+glm::vec3 Actor::getRight() const {
+    return glm::vec3(getTransform()[0]);
+}
+
+glm::vec3 Actor::getUp() const {
+    return glm::vec3(getTransform()[1]);
+}
+
 Actor const * AttachableActor::getParent() const {
     return parent;
 }
@@ -29,6 +41,10 @@ void AttachableActor::setRelativeTransform(glm::mat4 const & transform) {
 
 void AttachableActor::setRelativeTransform(glm::vec3 const & position, glm::vec3 const & forward, glm::vec3 const & up) {
     this->transform = glm::inverse(glm::lookAt(position, position + forward, up));
+}
+
+void AttachableActor::setRelativePosition(glm::vec3 const & position) {
+    setRelativeTransform(position, getForward(), getUp());
 }
 
 glm::vec3 AttachableActor::getVelocity() const {

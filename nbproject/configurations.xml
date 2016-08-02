@@ -16,8 +16,11 @@
       <itemPath>Image.hpp</itemPath>
       <itemPath>Joystick.hpp</itemPath>
       <itemPath>Keyboard.hpp</itemPath>
+      <itemPath>Light.hpp</itemPath>
       <itemPath>Listener.hpp</itemPath>
+      <itemPath>Material.hpp</itemPath>
       <itemPath>Mesh.hpp</itemPath>
+      <itemPath>Model.hpp</itemPath>
       <itemPath>Mouse.hpp</itemPath>
       <itemPath>Renderer.hpp</itemPath>
       <itemPath>Sampler.hpp</itemPath>
@@ -69,9 +72,12 @@
       <itemPath>Image.cpp</itemPath>
       <itemPath>Joystick.cpp</itemPath>
       <itemPath>Keyboard.cpp</itemPath>
+      <itemPath>Light.cpp</itemPath>
       <itemPath>Listener.cpp</itemPath>
       <itemPath>Main.cpp</itemPath>
+      <itemPath>Material.cpp</itemPath>
       <itemPath>Mesh.cpp</itemPath>
+      <itemPath>Model.cpp</itemPath>
       <itemPath>Mouse.cpp</itemPath>
       <itemPath>Renderer.cpp</itemPath>
       <itemPath>Sampler.cpp</itemPath>
@@ -194,15 +200,27 @@
       </item>
       <item path="Keyboard.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Light.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Light.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Listener.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Listener.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Main.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="Material.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Material.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Mesh.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Model.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Model.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Mouse.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -378,15 +396,27 @@
       </item>
       <item path="Keyboard.hpp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="Light.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Light.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Listener.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Listener.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Main.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="Material.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Material.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Mesh.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Mesh.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Model.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Model.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Mouse.cpp" ex="false" tool="1" flavor2="0">
       </item>

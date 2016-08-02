@@ -138,7 +138,7 @@ void Renderer::pack() {
     }
 }
 
-void Renderer::addLight(LightInfo const & light) {
+void Renderer::addLight(Light const * light) {
     lights.push_back(light);
 }
 
@@ -193,7 +193,7 @@ void Renderer::render(Camera const * camera) {
     glDisable(GL_DEPTH_TEST);
     
     // For each light...
-    for (LightInfo & light : lights) {
+    for (Light const * light : lights) {
 
         // Clear stencil
         glClear(GL_STENCIL_BUFFER_BIT);
@@ -213,8 +213,8 @@ void Renderer::render(Camera const * camera) {
         extrusion_shader.use();
         extrusion_shader.setUniform("projection", camera->getProjection());
         extrusion_shader.setUniform("view", camera->getView());
-        extrusion_shader.setUniform("light_position", light.position);
-        extrusion_shader.setUniform("light_radius", light.radius);
+        extrusion_shader.setUniform("light_position", light->getPosition());
+        extrusion_shader.setUniform("light_radius", light->getRadius());
 
         // TODO depth clamp?
         // see https://www.opengl.org/wiki_132/index.php?title=Vertex_Post-Processing&redirect=no#Depth_clamping
@@ -241,9 +241,9 @@ void Renderer::render(Camera const * camera) {
         // Select shading shader
         // TODO better shading model
         shading_shader.use();
-        shading_shader.setUniform("light_position", light.position);
-        shading_shader.setUniform("light_color", light.color);
-        shading_shader.setUniform("light_radius", light.radius);
+        shading_shader.setUniform("light_position", light->getPosition());
+        shading_shader.setUniform("light_color", light->getColor());
+        shading_shader.setUniform("light_radius", light->getRadius());
         shading_shader.setUniform("texture_position", 1);
         shading_shader.setUniform("texture_normal", 2);
 
