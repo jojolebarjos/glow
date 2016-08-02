@@ -112,6 +112,16 @@ void Listener::update() {
     glm::vec3 velocity = getVelocity();
     alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
     
+    // Update sources location
+    for (Source * source : sources)
+        if (source->binding) {
+            // TODO do not call OpenAL if nothing changed
+            glm::vec3 position = source->getPosition();
+            alSource3f(source->binding->handle, AL_POSITION, position.x, position.y, position.z);
+            glm::vec3 velocity = source->getVelocity();
+            alSource3f(source->binding->handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+        }
+    
     // TODO reduce CPU overload by doing these checks at a lower frequency
     
     // Check if sources have ended

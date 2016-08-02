@@ -5,8 +5,9 @@
 #include "Common.hpp"
 #include "Listener.hpp"
 #include "Sound.hpp"
+#include "Actor.hpp"
 
-class Source {
+class Source : public AttachableActor {
     friend class Listener;
     friend class Sound;
 public:
@@ -17,13 +18,7 @@ public:
     void setLooping(bool looping);
     bool isLooping() const;
     
-    void setPosition(glm::vec3 const & position);
-    glm::vec3 getPosition() const;
-    
-    void setVelocity(glm::vec3 const & velocity);
-    glm::vec3 getVelocity() const;
-
-    // TODO relative, direction, pitch, attenuation, gain
+    // TODO direction, pitch, attenuation, gain
 
     void play();
     void pause();
@@ -52,8 +47,6 @@ private:
 
     Sound * sound;
     bool looping;
-    glm::vec3 position;
-    glm::vec3 velocity;
     
 };
 

@@ -30,42 +30,6 @@ bool Source::isLooping() const {
     return looping;
 }
 
-void Source::setPosition(glm::vec3 const & position) {
-    
-    // Update property
-    if (position == this->position)
-        return;
-    this->position = position;
-    
-    // If the source is playing, need to notify OpenAL
-#ifndef GLOW_NO_OPENAL
-    if (binding)
-        alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
-#endif
-}
-
-glm::vec3 Source::getPosition() const {
-    return position;
-}
-
-void Source::setVelocity(glm::vec3 const & velocity) {
-    
-    // Update property
-    if (velocity == this->velocity)
-        return;
-    this->velocity = velocity;
-    
-    // If the source is playing, need to notify OpenAL
-#ifndef GLOW_NO_OPENAL
-    if (binding)
-        alSource3f(binding->handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-#endif
-}
-
-glm::vec3 Source::getVelocity() const {
-    return velocity;
-}
-
 void Source::play() {
 #ifndef GLOW_NO_OPENAL
     
@@ -97,9 +61,10 @@ void Source::play() {
         alSourcei(binding->handle, AL_LOOPING, looping ? AL_TRUE : AL_FALSE);
     
     // Define properties
+    glm::vec3 position = getPosition();
     alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
+    glm::vec3 velocity = getVelocity();
     alSource3f(binding->handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-    // alSourcei(handle, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
     // alSource3f(handle, AL_DIRECTION, direction.x, direction.y, direction.z);
     // alSourcef(handle, AL_PITCH, 1); in 0.5 .. 2.0
     // TODO attentuation AL_CONE_INNER_ANGLE, AL_CONE_OUTER_ANGLE, AL_REFERENCE_DISTANCE, AL_ROLLOFF_FACTOR, AL_MAX_DISTANCE

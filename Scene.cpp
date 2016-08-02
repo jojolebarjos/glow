@@ -58,6 +58,7 @@ bool Scene::initialize() {
         sampler.load("Test.wav", Sampler::LEFT);
         sound = listener.addSoundBuffer(sampler);
         source = listener.addSource(sound);
+        source->setParent(window->getController(0));
     }
     if (window->getHead())
         listener.setParent(window->getHead());
@@ -117,8 +118,6 @@ void Scene::update() {
         l.setRadius(6.0f);
         l.setColor({1.0f, 0.7f, 0.2f});
         renderer.addLight(&l);
-        source->setPosition(window->getController(0)->getPosition());
-        source->setVelocity(window->getController(0)->getVelocity());
     }
     
     // Draw everything
