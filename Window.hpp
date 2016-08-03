@@ -57,6 +57,7 @@ private:
     
     double time;
     double dt;
+    double average_dt;
     
     Mouse * mouse;
     Keyboard * keyboard;

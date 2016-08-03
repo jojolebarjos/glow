@@ -109,6 +109,9 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
     this->width = w;
     this->height = h;
     
+    // Try to disable V-sync
+    glfwSwapInterval(0);
+    
     // Print OpenGL infos
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl;
@@ -118,6 +121,7 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
     time = 0.0;
     glfwSetTime(0.0);
     dt = 0.01;
+    average_dt = dt;
     mouse = new Mouse(this);
     keyboard = new Keyboard(this);
     for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
@@ -340,6 +344,12 @@ bool Window::update() {
     double now = glfwGetTime();
     dt = now - time;
     time = now;
+    average_dt = 0.99f * average_dt + 0.01f * dt;
+    static float last_report = time;
+    if (time - last_report > 1.0f) {
+        last_report = time;
+        std::cout << "FPS: " << (1.0f / average_dt) << std::endl;
+    }
     
     // Check if user want to quit
     return !glfwWindowShouldClose(window);
