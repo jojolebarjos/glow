@@ -6,12 +6,16 @@
 
 ## ToDo list
 
-* Optimize OpenVR related stuff to fix laggy camera mouvement
-* Add remaining OpenVR input (tracking references, controller axis)
-* Sound groups
-* Directionality and gain
+* Encapsulate Bullet into multiple classes
+* Add material and model classes to encapsulate renderer objects
+* Improve and finish script engine, and use it to represent config files
+* Optimize OpenVR related stuff (maybe this will require multithreading)
+* Add remaining OpenVR input (tracking references, controller axis, haptic feedback)
+* Source groups
+* Directionality and gain of sources
 * Reduce audio update frequency to release some CPU usage
 * EFX effects and filters (i.e. provide high level interface)
+* Add occluders and zones to audio system
 * [Gamma correction](http://learnopengl.com/#!Advanced-Lighting/Gamma-Correction)
 * [HDR](http://learnopengl.com/#!Advanced-Lighting/HDR)
 * [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)
@@ -19,7 +23,9 @@
 * [Physically-based materials](https://www.marmoset.co/toolbag/learn/pbr-theory)
 * [Normal mapping](http://learnopengl.com/#!Advanced-Lighting/Normal-Mapping), but parallax mapping seems incompatible with shadow volumes
 * Volumetric shadows or light shafts (see [this page](http://www.cse.chalmers.se/~d00sint/) and [this page](http://cwyman.appspot.com/papers.html) for more advanced papers)
-* Load font with [FreeType](https://www.freetype.org/) and generate glyphs
+* Load font with [FreeType](https://www.freetype.org/)
+* [Generate glyphs](http://learnopengl.com/#!In-Practice/Text-Rendering)
+* Or use [distance fields](http://stackoverflow.com/questions/5262951/what-is-state-of-the-art-for-text-rendering-in-opengl-as-of-version-4-1) to achieve better results?
 
 ## Dependencies
 

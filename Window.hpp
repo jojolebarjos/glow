@@ -32,12 +32,11 @@ public:
     GLFWwindow * getHandle() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
-    // TODO get framebuffer
     
     float getTime() const;
     float getDeltaTime() const;
     
-    bool hasFocus() const;
+    boolx getFocus() const;
     
     Mouse const * getMouse() const;
     Keyboard const * getKeyboard() const;
@@ -59,6 +58,7 @@ private:
     double dt;
     double average_dt;
     
+    boolx focus;
     Mouse * mouse;
     Keyboard * keyboard;
     Joystick * joystick[4];

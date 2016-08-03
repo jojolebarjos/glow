@@ -18,6 +18,7 @@ static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum
 
 Window::Window()  {
     window = nullptr;
+    focus = false;
     mouse = nullptr;
     keyboard = nullptr;
     for (unsigned i = 0; i < sizeof(joystick) / sizeof(joystick[0]); ++i)
@@ -221,8 +222,8 @@ float Window::getDeltaTime() const {
     return dt;
 }
 
-bool Window::hasFocus() const {
-    return glfwGetWindowAttrib(window, GLFW_FOCUSED);
+boolx Window::getFocus() const {
+    return focus;
 }
 
 Mouse const * Window::getMouse() const {
@@ -350,6 +351,9 @@ bool Window::update() {
         last_report = time;
         std::cout << "FPS: " << (1.0f / average_dt) << std::endl;
     }
+    
+    // Update focus
+    focus = boolx(focus, glfwGetWindowAttrib(window, GLFW_FOCUSED));
     
     // Check if user want to quit
     return !glfwWindowShouldClose(window);
