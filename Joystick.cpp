@@ -44,14 +44,14 @@ void Joystick::update() {
         // Get axes
         int count;
         float const * new_axis = glfwGetJoystickAxes(index, &count);
-        axis_count = glm::max((unsigned)count, sizeof(axis) / sizeof(axis[0]));
+        axis_count = glm::max((unsigned)count, (unsigned)(sizeof(axis) / sizeof(axis[0])));
         for (uint32_t j = 0; j < axis_count; ++j)
             axis[j] = new_axis[j];
         
         // Get buttons
         current ^= 1;
         unsigned char const * new_button = glfwGetJoystickButtons(index, &count);
-        button_count = glm::max((unsigned)count, sizeof(button) / sizeof(button[0]));
+        button_count = glm::max((unsigned)count, (unsigned)(sizeof(button) / sizeof(button[0])));
         for (uint32_t j = 0; j < button_count; ++j)
             button[current][j] = new_button[j] == GLFW_PRESS;
         

@@ -61,7 +61,7 @@ bool Window::initialize(uint32_t width, uint32_t height, bool stereoscopy, bool 
 #else
     std::cout << "libjpeg: <none>" << std::endl;
 #endif
-#ifndef GLOW_PNG_NO_ZLIB
+#ifndef GLOW_NO_PNG_ZLIB
     std::cout << "libpng: " << PNG_LIBPNG_VER_MAJOR << '.' << PNG_LIBPNG_VER_MINOR << '.' << PNG_LIBPNG_VER_RELEASE << std::endl;
 #else
     std::cout << "libpng: <none>" << std::endl;

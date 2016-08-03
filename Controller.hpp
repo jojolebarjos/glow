@@ -37,8 +37,8 @@ private:
     int index;
     glm::mat4 transform;
     glm::vec3 velocity;
-#ifndef GLOW_NO_OPENVR
     int current;
+#ifndef GLOW_NO_OPENVR
     vr::VRControllerState_t state[2];
 #endif
     
