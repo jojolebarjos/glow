@@ -103,13 +103,13 @@ void Scene::update() {
     }
     
     // Special objects for VR
+    Light l;
     if (window->getHead()) {
         Renderer::MeshInfo m;
         m.color = 0;
         m.mesh = 1;
         m.transform = window->getController(0)->getTransform() * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
         renderer.addMesh(m);
-        Light l;
         l.setParent(window->getController(1));
         l.setRadius(6.0f);
         l.setColor({1.0f, 0.7f, 0.2f});

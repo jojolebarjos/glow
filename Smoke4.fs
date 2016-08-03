@@ -14,9 +14,8 @@ void main() {
     vec4 center = texture2D(previous, v_coordinate);
 
     // Render appropriate color
-    // TODO rescale properly
     if (mode == 0)
-        color = vec4(center.xyw, 1.0);
+        color = vec4(tanh(center.x) + 0.5, tanh(center.y) + 0.5, center.w, 1.0);
     else
         color = vec4(center.w * + (1.0 + center.x * 0.1), center.w * + (1.0 + center.y * 0.1), center.w * + (1.0 + length(center.xy)), 1.0);
 }

@@ -20,11 +20,14 @@ public:
     virtual uint32_t getButtonCount() const;
     virtual boolx getButton(uint32_t id) const;
     // TODO button name? enumerate buttons?
+    // TODO button touched (for controllers)?
     
     boolx getAnyButton() const;
     virtual boolx getPrimaryButton() const;
     virtual boolx getSecondaryButton() const;
-    // TODO up/down/right/left buttons and axis
+    // TODO tertiary? up/down/right/left buttons and axis
+    
+    // TODO haptic feedback
     
 protected:
 

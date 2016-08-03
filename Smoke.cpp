@@ -127,7 +127,7 @@ void Smoke::update() {
         glViewport(0, 0, window->getHead()->getWidth(), window->getHead()->getHeight());
         render_3d.use();
         render_3d.setUniform("previous", current);
-        render_3d.setUniform("mode", window->getKeyboard()->getButton(GLFW_KEY_SPACE) ? 0 : 1);
+        render_3d.setUniform("mode", window->getKeyboard()->getButton(GLFW_KEY_SPACE) || (window->getHead() && window->getController(0)->getButton(2)) ? 0 : 1);
         render_3d.setUniform("model", glm::mat4(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
         for (int i = 0; i < 2; ++i) {
             window->getHead()->getEye(i)->getFramebuffer()->bind();

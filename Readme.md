@@ -6,15 +6,18 @@
 
 ## ToDo list
 
+* Optimize OpenVR related stuff to fix laggy camera mouvement
+* Add remaining OpenVR input (tracking references, controller axis)
+* Sound groups
+* Directionality and gain
 * Reduce audio update frequency to release some CPU usage
-* EFX effects and filters
+* EFX effects and filters (i.e. provide high level interface)
 * [Gamma correction](http://learnopengl.com/#!Advanced-Lighting/Gamma-Correction)
 * [HDR](http://learnopengl.com/#!Advanced-Lighting/HDR)
 * [Bloom](http://learnopengl.com/#!Advanced-Lighting/Bloom)
 * [Phong](http://learnopengl.com/#!Advanced-Lighting/Advanced-Lighting)
 * [Physically-based materials](https://www.marmoset.co/toolbag/learn/pbr-theory)
 * [Normal mapping](http://learnopengl.com/#!Advanced-Lighting/Normal-Mapping), but parallax mapping seems incompatible with shadow volumes
-* Somehow use deferred shading to optimize
 * Volumetric shadows or light shafts (see [this page](http://www.cse.chalmers.se/~d00sint/) and [this page](http://cwyman.appspot.com/papers.html) for more advanced papers)
 * Load font with [FreeType](https://www.freetype.org/) and generate glyphs
 
