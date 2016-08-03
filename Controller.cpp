@@ -1,6 +1,4 @@
 
-#include <openvr_mingw.hpp>
-
 #include "Controller.hpp"
 
 bool Controller::isConnected() const {
