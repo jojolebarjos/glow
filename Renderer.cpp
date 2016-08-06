@@ -104,16 +104,16 @@ void Renderer::pack() {
         count += mesh.getCount();
     
     // Allocate memory
-    buffer.bind(GL_ARRAY_BUFFER);
-    buffer.setData(count * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
+    geometry.bind(GL_ARRAY_BUFFER);
+    geometry.setData(count * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
     
     // Upload data
     GLuint offset = 0;
     meshMaps.clear();
     for (Mesh & mesh : meshDatas) {
-        buffer.setSubData(offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getPositions());
-        buffer.setSubData(count * 4 * 3 + offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getNormals());
-        buffer.setSubData(offset * 4 * 2 + count * 4 * (3 + 3), mesh.getCount() * 4 * 2, mesh.getCoordinates());
+        geometry.setSubData(offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getPositions());
+        geometry.setSubData(count * 4 * 3 + offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getNormals());
+        geometry.setSubData(offset * 4 * 2 + count * 4 * (3 + 3), mesh.getCount() * 4 * 2, mesh.getCoordinates());
         meshMaps.push_back({offset, mesh.getCount()});
         offset += mesh.getCount();
     }
@@ -123,6 +123,9 @@ void Renderer::pack() {
     array.addAttribute(0, 3, GL_FLOAT, 0, 0);
     array.addAttribute(1, 3, GL_FLOAT, 0, count * 4 * 3);
     array.addAttribute(2, 2, GL_FLOAT, 0, count * 4 * (3 + 3));
+    models.bind(GL_ARRAY_BUFFER);
+    array.addAttributeMat4(3, 80, 0, true);
+    array.addAttribute(7, 4, GL_FLOAT, 80, 64, true);
     
     // Create textures
     delete textures;
@@ -149,8 +152,39 @@ void Renderer::clear() {
 
 void Renderer::render(Camera const * camera) {
     
-    // Use the same vertex array for everything
+    // Upload new per-model data
+    struct PerModel {
+        glm::mat4 transform;
+        glm::vec4 extra;
+    };
+    std::vector<PerModel> models_data(meshes.size());
+    for (size_t i = 0; i < meshes.size(); ++i) {
+        models_data[i].transform = meshes[i].transform;
+        models_data[i].extra.x = meshes[i].color;
+    }
+    models.bind(GL_ARRAY_BUFFER);
+    models.setData(meshes.size() * sizeof(PerModel), models_data.data(), GL_STREAM_DRAW);
+    
+    // Prepare indirect commands
+    // TODO group models that have the same mesh?
+    struct Command {
+        GLuint count;
+        GLuint instanceCount;
+        GLuint first;
+        GLuint baseInstance;
+    };
+    std::vector<Command> commands(meshes.size());
+    for (size_t i = 0; i < meshes.size(); ++i) {
+        glm::ivec2 m = meshMaps[meshes[i].mesh];
+        commands[i].first = m.x;
+        commands[i].count = m.y;
+        commands[i].instanceCount = 1;
+        commands[i].baseInstance = i;
+    }
+    
+    // Use the same vertex array and texture array for everything
     array.bind();
+    textures->bind(4);
     
     // Bind textures
     render_color.bind(0);
@@ -172,9 +206,10 @@ void Renderer::render(Camera const * camera) {
     render_shader.use();
     render_shader.setUniform("projection", camera->getProjection());
     render_shader.setUniform("view", camera->getView());
+    render_shader.setUniform("textures", 4);
     
     // Draw textured geometry and store diffuse, emissive, position and normals
-    drawTexturedObjects(render_shader);
+    glMultiDrawArraysIndirect(GL_TRIANGLES, commands.data(), commands.size(), 0);
     
     // Select light-only render buffer
     render_light_framebuffer.bind();
@@ -217,7 +252,8 @@ void Renderer::render(Camera const * camera) {
 
         // Draw geometry
         // TODO consider only relevant objects (i.e. filter CPU-side)
-        drawCasterObjects(extrusion_shader);
+        // TODO filter non-caster objects
+        glMultiDrawArraysIndirect(GL_TRIANGLES, commands.data(), commands.size(), 0);
 
         // Now, write color
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -245,7 +281,7 @@ void Renderer::render(Camera const * camera) {
 
         // Draw geometry again to shade surfaces properly
         // TODO maybe should not draw full-screen quad and only cover expected area (e.g. using a sphere)
-        drawSquare();
+        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
 
         // Restore default values
         glDisable(GL_BLEND);
@@ -265,7 +301,7 @@ void Renderer::render(Camera const * camera) {
         finalize_shader.setUniform("texture_position", 1);
         finalize_shader.setUniform("texture_normal", 2);
         finalize_shader.setUniform("texture_light", 3);
-        drawSquare();
+        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
 
         // Apply FXAA
         if (camera->getFramebuffer())
@@ -275,7 +311,7 @@ void Renderer::render(Camera const * camera) {
         processing_color[0].bind(0);
         antialiasing_shader.use();
         antialiasing_shader.setUniform("texture", 0);
-        drawSquare();
+        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
         
     } else {
         
@@ -290,40 +326,7 @@ void Renderer::render(Camera const * camera) {
         finalize_shader.setUniform("texture_position", 1);
         finalize_shader.setUniform("texture_normal", 2);
         finalize_shader.setUniform("texture_light", 3);
-        drawSquare();
+        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
     }
     
-}
-
-void Renderer::drawUntexturedObjects(Shader & shader) {
-    // TODO use https://www.opengl.org/wiki/GLAPI/glMultiDrawArrays
-    // Need https://www.opengl.org/sdk/docs/man/html/glVertexAttribDivisor.xhtml
-    // And http://www.g-truc.net/post-0518.html
-    // i.e. use element draw asap
-    for (MeshInfo & mesh : meshes) {
-        shader.setUniform("model", mesh.transform);
-        glm::ivec2 m = meshMaps[mesh.mesh];
-        glDrawArrays(GL_TRIANGLES, m.x, m.y);
-    }
-}
-
-void Renderer::drawCasterObjects(Shader & shader) {
-    // TODO add parameter to disable shadowcast on some meshes
-    drawUntexturedObjects(shader);
-}
-
-void Renderer::drawTexturedObjects(Shader & shader) {
-    shader.setUniform("textures", 4);
-    textures->bind(4);
-    for (MeshInfo & mesh : meshes) {
-        shader.setUniform("model", mesh.transform);
-        shader.setUniform("index", (int)mesh.color);
-        // TODO other textures
-        glm::ivec2 m = meshMaps[mesh.mesh];
-        glDrawArrays(GL_TRIANGLES, m.x, m.y);
-    }
-}
-
-void Renderer::drawSquare() {
-    glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
 }

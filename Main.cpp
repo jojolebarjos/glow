@@ -15,7 +15,8 @@ int main(int argc, char** argv) {
     Scene
     //Smoke
     game(&window);
-    game.initialize();
+    if (!game.initialize())
+        return -1;
     
     // Game loop
     do {

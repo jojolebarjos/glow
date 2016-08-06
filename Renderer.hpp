@@ -50,11 +50,6 @@ public:
     
 private:
     
-    void drawUntexturedObjects(Shader & shader);
-    void drawCasterObjects(Shader & shader);
-    void drawTexturedObjects(Shader & shader);
-    void drawSquare();
-    
     Window * window;
     uint32_t width;
     uint32_t height;
@@ -69,7 +64,8 @@ private:
     std::vector<glm::ivec2> meshMaps;
     std::vector<glm::ivec2> imageMaps;
     
-    Buffer buffer;
+    Buffer geometry;
+    Buffer models;
     VertexArray array;
     Texture * textures;
     

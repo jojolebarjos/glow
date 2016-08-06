@@ -56,7 +56,6 @@
       <itemPath>Smoke3.fs</itemPath>
       <itemPath>Smoke4.fs</itemPath>
       <itemPath>Square.obj</itemPath>
-      <itemPath>Test.bmp</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -274,8 +273,6 @@
       </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Test.bmp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Texture.hpp" ex="false" tool="3" flavor2="0">
@@ -469,8 +466,6 @@
       <item path="Source.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Square.obj" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Test.bmp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Texture.cpp" ex="false" tool="1" flavor2="0">
       </item>

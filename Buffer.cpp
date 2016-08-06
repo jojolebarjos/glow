@@ -11,6 +11,10 @@ Buffer::~Buffer() {
     glDeleteBuffers(1, &handle);
 }
 
+GLuint Buffer::getHandle() const {
+    return handle;
+}
+
 void Buffer::bind(GLenum target) {
     glBindBuffer(target, handle);
     this->target = target;

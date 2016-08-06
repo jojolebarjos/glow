@@ -13,6 +13,8 @@ public:
     Buffer(Buffer const &) = delete;
     Buffer & operator=(Buffer const &) = delete;
     
+    GLuint getHandle() const;
+    
     void bind(GLenum target);
     
     void setData(GLuint size, void const * pointer, GLenum usage);

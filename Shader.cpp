@@ -12,6 +12,10 @@ Shader::~Shader() {
     glDeleteProgram(handle);
 }
 
+GLuint Shader::getHandle() const {
+    return handle;
+}
+
 bool Shader::addSource(GLenum type, std::string const & code) {
     GLuint id = glCreateShader(type);
     if (!id)

@@ -15,7 +15,10 @@ public:
     
     void bind();
     
-    void addAttribute(int index, GLint size, GLenum type, GLuint stride, GLuint offset);
+    void addAttribute(int index, GLint size, GLenum type, GLuint stride, GLuint offset, bool instanced = false);
+    
+    // Note: one location can hold up to 4 floats, i.e. mat4 takes 4 slots
+    void addAttributeMat4(int index, GLuint stride, GLuint offset, bool instanced = false);
     
 private:
 

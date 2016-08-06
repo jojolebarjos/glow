@@ -13,6 +13,8 @@ public:
     Shader(Shader const &) = delete;
     Shader & operator=(Shader const &) = delete;
     
+    GLuint getHandle() const;
+    
     bool addSource(GLenum type, std::string const & code);
     bool addSourceFile(GLenum type, std::string const & path);
     
