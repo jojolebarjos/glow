@@ -5,7 +5,6 @@
 #include "Actor.hpp"
 
 class Model : public AttachableActor {
-    friend class Renderer;
 public:
     
     // TODO model class

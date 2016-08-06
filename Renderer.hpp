@@ -71,15 +71,11 @@ private:
     
     Buffer buffer;
     VertexArray array;
-    // TODO use texture array
-    std::vector<Texture *> textures;
+    Texture * textures;
     
     std::vector<Light const *> lights;
     std::vector<MeshInfo> meshes;
     // TODO other temporary buffers (particles, ...)
-    
-    glm::mat4 projection;
-    glm::mat4 view;
     
     Shader render_shader;
     Shader extrusion_shader;

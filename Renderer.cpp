@@ -2,11 +2,10 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 
-Renderer::Renderer(Window * window) : window(window) {}
+Renderer::Renderer(Window * window) : window(window), textures(nullptr) {}
 
 Renderer::~Renderer() {
-    for (Texture * texture : textures)
-        delete texture;
+    delete textures;
 }
 
 bool Renderer::initialize(uint32_t width, uint32_t height) {
@@ -125,17 +124,14 @@ void Renderer::pack() {
     array.addAttribute(1, 3, GL_FLOAT, 0, count * 4 * 3);
     array.addAttribute(2, 2, GL_FLOAT, 0, count * 4 * (3 + 3));
     
-    // Clear old textures
-    for (Texture * texture : textures)
-        delete texture;
-    
     // Create textures
-    textures.resize(imageDatas.size());
-    for (GLuint index = 0; index < imageDatas.size(); ++index) {
-        textures[index] = new Texture();
-        textures[index]->createColor(imageDatas[index], true);
-        textures[index]->setAnisotropy(true);
-    }
+    delete textures;
+    textures = new Texture();
+    std::vector<Image const *> images;
+    for (GLuint index = 0; index < imageDatas.size(); ++index)
+        images.push_back(&imageDatas[index]);
+    textures->createColorArray(images, true);
+    textures->setAnisotropy(true);
 }
 
 void Renderer::addLight(Light const * light) {
@@ -317,10 +313,11 @@ void Renderer::drawCasterObjects(Shader & shader) {
 }
 
 void Renderer::drawTexturedObjects(Shader & shader) {
-    shader.setUniform("texture", 4);
+    shader.setUniform("textures", 4);
+    textures->bind(4);
     for (MeshInfo & mesh : meshes) {
         shader.setUniform("model", mesh.transform);
-        textures[mesh.color]->bind(4);
+        shader.setUniform("index", (int)mesh.color);
         // TODO other textures
         glm::ivec2 m = meshMaps[mesh.mesh];
         glDrawArrays(GL_TRIANGLES, m.x, m.y);

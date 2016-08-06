@@ -33,7 +33,9 @@ bool Scene::initialize() {
         height = window->getHeight();
     }
     renderer.initialize(width, height);
-    renderer.loadImage("Test.bmp");
+    renderer.loadImage("Crate.jpg");
+    renderer.loadImage("Floor.jpg");
+    renderer.loadImage("Metal.jpg");
     renderer.loadMesh("Cube.obj");
     renderer.pack();
     
@@ -48,7 +50,7 @@ bool Scene::initialize() {
     // Create floor
     Object * plane = addObject(new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
     plane->mesh.mesh = 0;
-    plane->mesh.color = 0;
+    plane->mesh.color = 1;
     
     // Prepare listener
     sound = nullptr;

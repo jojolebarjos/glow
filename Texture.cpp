@@ -3,7 +3,7 @@
 
 #include "Texture.hpp"
 
-Texture::Texture() : width(0), height(0), mipmapped(false), depthStencil(false), multisampling(0) {
+Texture::Texture() : width(0), height(0), depth(0), mipmapped(false), depthStencil(false), multisampling(0) {
     glGenTextures(1, &handle);
 }
 
@@ -18,14 +18,14 @@ GLuint Texture::getHandle() {
 void Texture::createColor(Image const & image, bool mipmapped) {
     width = image.getWidth();
     height = image.getHeight();
+    depth = 0;
     this->mipmapped = mipmapped;
     depthStencil = false;
     multisampling = 0;
     glBindTexture(GL_TEXTURE_2D, handle);
-    // TODO use glTexStorage instead https://www.opengl.org/wiki/Common_Mistakes#Creating_a_complete_texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.getPointer());
     if (mipmapped) {
-        glEnable(GL_TEXTURE_2D);
+        //glEnable(GL_TEXTURE_2D);
         glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -33,9 +33,10 @@ void Texture::createColor(Image const & image, bool mipmapped) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void Texture::createColor(int width, int height, bool floating, GLuint multisampling) {
+void Texture::createColor(uint32_t width, uint32_t height, bool floating, GLuint multisampling) {
     this->width = width;
     this->height = height;
+    depth = 0;
     mipmapped = false;
     depthStencil = false;
     this->multisampling = multisampling;
@@ -52,9 +53,10 @@ void Texture::createColor(int width, int height, bool floating, GLuint multisamp
     }
 }
 
-void Texture::createDepthStencil(GLuint width, GLuint height, GLuint multisampling) {
+void Texture::createDepthStencil(uint32_t width, uint32_t height, GLuint multisampling) {
     this->width = width;
     this->height = height;
+    depth = 0;
     mipmapped = false;
     depthStencil = true;
     this->multisampling = multisampling;
@@ -67,12 +69,43 @@ void Texture::createDepthStencil(GLuint width, GLuint height, GLuint multisampli
     }
 }
 
-GLuint Texture::getWidth() const {
+void Texture::createColorArray(std::vector<Image const *> images, bool mipmapped) {
+    if (images.empty()) {
+        assert(false);
+        return;
+    }
+    width = images[0]->getWidth();
+    height = images[0]->getHeight();
+    depth = images.size();
+    this->mipmapped = mipmapped;
+    depthStencil = false;
+    multisampling = 0;
+    glBindTexture(GL_TEXTURE_2D_ARRAY, handle);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    for (uint32_t i = 0; i < depth; ++i)
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, images[i]->getPointer());
+    if (mipmapped) {
+        glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    } else
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
+
+uint32_t Texture::getWidth() const {
     return width;
 }
 
-GLuint Texture::getHeight() const {
+uint32_t Texture::getHeight() const {
     return height;
+}
+
+uint32_t Texture::getDepth() const {
+    return depth;
+}
+
+bool Texture::isArray() const {
+    return depth;
 }
 
 bool Texture::isMipmapped() const {
@@ -88,7 +121,7 @@ GLuint Texture::getMultisampling() const {
 }
 
 void Texture::bind() {
-    glBindTexture(multisampling ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, handle);
+    glBindTexture(multisampling ? GL_TEXTURE_2D_MULTISAMPLE : depth ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D, handle);
 }
 
 void Texture::bind(int slot) {
@@ -101,11 +134,12 @@ void Texture::setInterpolation(bool linear) {
         assert(false);
         return;
     }
+    GLenum target = depth ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
     if (mipmapped)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST);
     else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
 }
 
 void Texture::setAnisotropy(bool enabled) {
@@ -113,12 +147,13 @@ void Texture::setAnisotropy(bool enabled) {
         assert(false);
         return;
     }
+    GLenum target = depth ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
     if (enabled) {
         GLfloat max;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max);
+        glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, max);
     } else
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0f);
+        glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0.0f);
 }
 
 void Texture::setBorder(bool clamp) {
@@ -126,9 +161,10 @@ void Texture::setBorder(bool clamp) {
         assert(false);
         return;
     }
+    GLenum target = depth ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
     GLenum wrap = clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
 }
 
 void Texture::setBorder(glm::vec4 const & color) {
@@ -136,7 +172,8 @@ void Texture::setBorder(glm::vec4 const & color) {
         assert(false);
         return;
     }
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &color[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    GLenum target = depth ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+    glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, &color[0]);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
