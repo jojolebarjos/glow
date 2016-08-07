@@ -9,6 +9,7 @@
 #include "Window.hpp"
 #include "Light.hpp"
 #include "Model.hpp"
+#include "Physics.hpp"
 
 class Scene {
 public:
@@ -37,31 +38,9 @@ private:
     Sound * sound;
     Source * source;
     
-    // TODO do we need to encapsulate physics in dedicated classes?
+    Physics physics;
     
-    btDynamicsWorld * world;
-    btConstraintSolver * solver;
-    btCollisionDispatcher * dispatcher;
-    btCollisionConfiguration * configuration;
-    btBroadphaseInterface * broadphase;
-    
-    struct Object {
-        // TODO dramatically improve the object model!
-        Scene * scene;
-        std::list<Object *>::iterator iterator;
-        btCollisionShape * shape;
-        btRigidBody * body;
-        Model model;
-        
-        ~Object();
-        
-        glm::mat4 getTransform();
-    };
-    std::list<Object *> objects;
-    
-    Object * addObject(btCollisionShape * shape, glm::vec3 const & position, float mass);
-    
-    Object * addCube(glm::vec3 const & position);
+    std::vector<Model> models;
     
 };
 

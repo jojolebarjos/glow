@@ -2,17 +2,9 @@
 #include "Scene.hpp"
 #include "Window.hpp"
 
-Scene::Scene(Window * window) : window(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
+Scene::Scene(Window * window) : window(window) {}
 
-Scene::~Scene() {
-    while (!objects.empty())
-        delete objects.front();
-    delete world;
-    delete solver;
-    delete dispatcher;
-    delete configuration;
-    delete broadphase;
-}
+Scene::~Scene() {}
 
 bool Scene::initialize() {
     // TODO handle errors
@@ -39,18 +31,13 @@ bool Scene::initialize() {
     renderer.loadMesh("Cube.obj");
     renderer.pack();
     
-    // Create physics
-    broadphase = new btDbvtBroadphase();
-    configuration = new btDefaultCollisionConfiguration();
-    dispatcher = new btCollisionDispatcher(configuration);
-    solver = new btSequentialImpulseConstraintSolver();
-    world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, configuration);
-    world->setGravity({0, 0, -10});
-    
     // Create floor
-    Object * plane = addObject(new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
-    plane->model.mesh = 0;
-    plane->model.color = 1;
+    Body * plane = new Body(&physics, new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
+    Model model;
+    model.mesh = 0;
+    model.color = 1;
+    model.setParent(plane);
+    models.push_back(model);
     
     // Prepare listener
     sound = nullptr;
@@ -79,12 +66,19 @@ void Scene::update() {
     
     // Add cube if requested
     if (window->getKeyboard()->getPrimaryButton().isPressed() || (window->getHead() && window->getController(0)->getPrimaryButton().isPressed())) {
-        addCube({5, 0, 5});
+        glm::vec3 position(5, 0, 5);
+        btBoxShape * shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
+        Body * body = new Body(&physics, shape, position, 1.0f);
+        Model model;
+        model.mesh = 1;
+        model.color = 0;
+        model.setParent(body);
+        models.push_back(model);
         source->play();
     }
     
     // Simulate world
-    world->stepSimulation(delta, 10);
+    physics.update(delta);
     
     // Update camera
     glm::vec3 position(glm::cos(time / 3) * 5.0f, glm::sin(time / 3) * 5.0f, 3.0f);
@@ -99,10 +93,8 @@ void Scene::update() {
     light.setRadius(5.0f);
     light.setColor({0.2f, 0.4f, 1.0f});
     renderer.addLight(&light);
-    for (Object * object : objects) {
-        object->model.setRelativeTransform(object->getTransform());
-        renderer.addModel(&object->model);
-    }
+    for (Model & model : models)
+        renderer.addModel(&model);
     
     // Special objects for VR
     Light l;
@@ -132,43 +124,4 @@ void Scene::update() {
     
     // Update audio
     listener.update();
-}
-
-Scene::Object::~Object() {
-    scene->world->removeRigidBody(body);
-    delete shape;
-    delete body->getMotionState();
-    delete body;
-    scene->objects.erase(iterator);
-}
-
-glm::mat4 Scene::Object::getTransform() {
-    btTransform transform;
-    body->getMotionState()->getWorldTransform(transform);
-    glm::mat4 matrix;
-    transform.getOpenGLMatrix(glm::value_ptr(matrix));
-    return matrix;
-}
-
-Scene::Object * Scene::addObject(btCollisionShape * shape, glm::vec3 const & position, float mass) {
-    Object * result = new Object();
-    result->scene = this;
-    result->shape = shape;
-    btMotionState * state = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(position.x, position.y, position.z)));
-    btVector3 inertia(0, 0, 0);
-    shape->calculateLocalInertia(mass, inertia);
-    btRigidBody::btRigidBodyConstructionInfo ci(mass, state, shape, inertia);
-    result->body = new btRigidBody(ci);
-    world->addRigidBody(result->body);
-    objects.push_front(result);
-    result->iterator = objects.begin();
-    return result;
-}
-
-Scene::Object * Scene::addCube(glm::vec3 const & position) {
-    btBoxShape * shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
-    Object * result = addObject(shape, position, 1.0f);
-    result->model.mesh = 1;
-    result->model.color = 0;
-    return result;
 }

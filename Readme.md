@@ -6,8 +6,7 @@
 
 ## ToDo list
 
-* Encapsulate Bullet into multiple classes
-* Add material and model classes to encapsulate renderer objects
+* Add material classe to encapsulate renderer objects
 * Improve and finish script engine, and use it to represent config files
 * Optimize OpenVR related stuff (maybe this will require multithreading)
 * Add remaining OpenVR input (tracking references, controller axis, haptic feedback)
