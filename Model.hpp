@@ -7,7 +7,10 @@
 class Model : public AttachableActor {
 public:
     
-    // TODO model class
+    // TODO model class, with proper mesh/texture abstraction
+    
+    uint32_t mesh;
+    uint32_t color;
     
 private:
 

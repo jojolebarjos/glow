@@ -19,13 +19,6 @@
 class Renderer {
 public:
     
-    struct MeshInfo {
-        glm::mat4 transform;
-        GLuint mesh;
-        GLuint color;
-        // TODO light, normal, material...
-    };
-    
     Renderer(Window * window);
     ~Renderer();
     
@@ -34,16 +27,12 @@ public:
     
     bool initialize(uint32_t width, uint32_t height);
     
-    GLuint loadMesh(std::string const & path);
-    
-    GLuint loadImage(std::string const & path);
-    
+    uint32_t loadMesh(std::string const & path);
+    uint32_t loadImage(std::string const & path);
     void pack();
     
     void addLight(Light const * light);
-    
-    void addMesh(MeshInfo const & mesh);
-    
+    void addModel(Model const * model);
     void clear();
     
     void render(Camera const * camera);
@@ -55,8 +44,8 @@ private:
     uint32_t height;
     
     // TODO maybe this mapping should not be done here?
-    std::map<std::string, GLuint> meshNames;
-    std::map<std::string, GLuint> imageNames;
+    std::map<std::string, uint32_t> meshNames;
+    std::map<std::string, uint32_t> imageNames;
     
     std::vector<Mesh> meshDatas;
     std::vector<Image> imageDatas;
@@ -65,12 +54,12 @@ private:
     std::vector<glm::ivec2> imageMaps;
     
     Buffer geometry;
-    Buffer models;
+    Buffer permodel;
     VertexArray array;
     Texture * textures;
     
     std::vector<Light const *> lights;
-    std::vector<MeshInfo> meshes;
+    std::vector<Model const *> models;
     // TODO other temporary buffers (particles, ...)
     
     Shader render_shader;

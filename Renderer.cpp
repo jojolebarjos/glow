@@ -69,27 +69,27 @@ bool Renderer::initialize(uint32_t width, uint32_t height) {
     return true;
 }
 
-GLuint Renderer::loadMesh(std::string const & path) {
+uint32_t Renderer::loadMesh(std::string const & path) {
     auto it = meshNames.find(path);
     if (it != meshNames.end())
         return it->second;
     Mesh mesh;
     // TODO check for error
     mesh.load(path);
-    GLuint index = meshDatas.size();
+    uint32_t index = meshDatas.size();
     meshDatas.push_back(mesh);
     meshNames[path] = index;
     return index;
 }
 
-GLuint Renderer::loadImage(std::string const & path) {
+uint32_t Renderer::loadImage(std::string const & path) {
     auto it = imageNames.find(path);
     if (it != imageNames.end())
         return it->second;
     Image image;
     // TODO check for error
     image.load(path);
-    GLuint index = imageDatas.size();
+    uint32_t index = imageDatas.size();
     imageDatas.push_back(image);
     imageNames[path] = index;
     return index;
@@ -99,7 +99,7 @@ void Renderer::pack() {
     // TODO allow pack-less resource loading!
     
     // Count total vertices
-    GLuint count = 0;
+    uint32_t count = 0;
     for (Mesh & mesh : meshDatas)
         count += mesh.getCount();
     
@@ -108,7 +108,7 @@ void Renderer::pack() {
     geometry.setData(count * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
     
     // Upload data
-    GLuint offset = 0;
+    uint32_t offset = 0;
     meshMaps.clear();
     for (Mesh & mesh : meshDatas) {
         geometry.setSubData(offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getPositions());
@@ -123,7 +123,7 @@ void Renderer::pack() {
     array.addAttribute(0, 3, GL_FLOAT, 0, 0);
     array.addAttribute(1, 3, GL_FLOAT, 0, count * 4 * 3);
     array.addAttribute(2, 2, GL_FLOAT, 0, count * 4 * (3 + 3));
-    models.bind(GL_ARRAY_BUFFER);
+    permodel.bind(GL_ARRAY_BUFFER);
     array.addAttributeMat4(3, 80, 0, true);
     array.addAttribute(7, 4, GL_FLOAT, 80, 64, true);
     
@@ -141,29 +141,31 @@ void Renderer::addLight(Light const * light) {
     lights.push_back(light);
 }
 
-void Renderer::addMesh(MeshInfo const & mesh) {
-    meshes.push_back(mesh);
+void Renderer::addModel(Model const * model) {
+    models.push_back(model);
 }
 
 void Renderer::clear() {
     lights.clear();
-    meshes.clear();
+    models.clear();
 }
 
 void Renderer::render(Camera const * camera) {
+    // TODO transform upload and command generation could be done in another method, to avoid useless computation in stereoscopy
+    // TODO also, once commands are built, can be asynchronously executed (i.e. could compute gameplay part while rendering)
     
     // Upload new per-model data
     struct PerModel {
         glm::mat4 transform;
         glm::vec4 extra;
     };
-    std::vector<PerModel> models_data(meshes.size());
-    for (size_t i = 0; i < meshes.size(); ++i) {
-        models_data[i].transform = meshes[i].transform;
-        models_data[i].extra.x = meshes[i].color;
+    std::vector<PerModel> models_data(models.size());
+    for (size_t i = 0; i < models.size(); ++i) {
+        models_data[i].transform = models[i]->getTransform();
+        models_data[i].extra.x = models[i]->color;
     }
-    models.bind(GL_ARRAY_BUFFER);
-    models.setData(meshes.size() * sizeof(PerModel), models_data.data(), GL_STREAM_DRAW);
+    permodel.bind(GL_ARRAY_BUFFER);
+    permodel.setData(models.size() * sizeof(PerModel), models_data.data(), GL_STREAM_DRAW);
     
     // Prepare indirect commands
     // TODO group models that have the same mesh?
@@ -173,9 +175,9 @@ void Renderer::render(Camera const * camera) {
         GLuint first;
         GLuint baseInstance;
     };
-    std::vector<Command> commands(meshes.size());
-    for (size_t i = 0; i < meshes.size(); ++i) {
-        glm::ivec2 m = meshMaps[meshes[i].mesh];
+    std::vector<Command> commands(models.size());
+    for (size_t i = 0; i < models.size(); ++i) {
+        glm::ivec2 m = meshMaps[models[i]->mesh];
         commands[i].first = m.x;
         commands[i].count = m.y;
         commands[i].instanceCount = 1;

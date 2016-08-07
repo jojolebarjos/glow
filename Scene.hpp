@@ -8,6 +8,7 @@
 #include "Source.hpp"
 #include "Window.hpp"
 #include "Light.hpp"
+#include "Model.hpp"
 
 class Scene {
 public:
@@ -50,7 +51,7 @@ private:
         std::list<Object *>::iterator iterator;
         btCollisionShape * shape;
         btRigidBody * body;
-        Renderer::MeshInfo mesh;
+        Model model;
         
         ~Object();
         

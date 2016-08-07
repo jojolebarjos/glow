@@ -49,8 +49,8 @@ bool Scene::initialize() {
     
     // Create floor
     Object * plane = addObject(new btStaticPlaneShape(btVector3(0, 0, 1), 0), {0, 0, 0}, 0);
-    plane->mesh.mesh = 0;
-    plane->mesh.color = 1;
+    plane->model.mesh = 0;
+    plane->model.color = 1;
     
     // Prepare listener
     sound = nullptr;
@@ -100,18 +100,19 @@ void Scene::update() {
     light.setColor({0.2f, 0.4f, 1.0f});
     renderer.addLight(&light);
     for (Object * object : objects) {
-        object->mesh.transform = object->getTransform();
-        renderer.addMesh(object->mesh);
+        object->model.setRelativeTransform(object->getTransform());
+        renderer.addModel(&object->model);
     }
     
     // Special objects for VR
     Light l;
+    Model m;
     if (window->getHead()) {
-        Renderer::MeshInfo m;
         m.color = 0;
         m.mesh = 1;
-        m.transform = window->getController(0)->getTransform() * glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1);
-        renderer.addMesh(m);
+        m.setParent(window->getController(0));
+        m.setRelativeTransform(glm::mat4(0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 1));
+        renderer.addModel(&m);
         l.setParent(window->getController(1));
         l.setRadius(6.0f);
         l.setColor({1.0f, 0.7f, 0.2f});
@@ -166,7 +167,7 @@ Scene::Object * Scene::addObject(btCollisionShape * shape, glm::vec3 const & pos
 Scene::Object * Scene::addCube(glm::vec3 const & position) {
     btBoxShape * shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
     Object * result = addObject(shape, position, 1.0f);
-    result->mesh.mesh = 1;
-    result->mesh.color = 0;
+    result->model.mesh = 1;
+    result->model.color = 0;
     return result;
 }

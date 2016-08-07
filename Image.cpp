@@ -124,6 +124,7 @@ bool Image::loadPng(std::string const & path) {
   
     // Error handler
     if (setjmp(png_jmpbuf(png))) {
+        // TODO fix weird message appearing at exit
         png_destroy_read_struct(&png, &info, nullptr);
         fclose(file);
         return false;
