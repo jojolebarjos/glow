@@ -2,7 +2,7 @@
 #include "Scene.hpp"
 #include "Window.hpp"
 
-Scene::Scene(Window * window) : window(window), renderer(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
+Scene::Scene(Window * window) : window(window), world(nullptr), solver(nullptr), dispatcher(nullptr), configuration(nullptr), broadphase(nullptr) {}
 
 Scene::~Scene() {
     while (!objects.empty())
@@ -120,6 +120,7 @@ void Scene::update() {
     }
     
     // Draw everything
+    renderer.prepare();
     if (window->getHead()) {
         glViewport(0, 0, window->getHead()->getWidth(), window->getHead()->getHeight());
         for (unsigned int i = 0; i < 2; ++i)

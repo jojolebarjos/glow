@@ -2,7 +2,7 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 
-Renderer::Renderer(Window * window) : window(window), textures(nullptr) {}
+Renderer::Renderer() : textures(nullptr) {}
 
 Renderer::~Renderer() {
     delete textures;
@@ -104,16 +104,16 @@ void Renderer::pack() {
         count += mesh.getCount();
     
     // Allocate memory
-    geometry.bind(GL_ARRAY_BUFFER);
-    geometry.setData(count * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
+    geometry_buffer.bind(GL_ARRAY_BUFFER);
+    geometry_buffer.setData(count * 4 * (3 + 3 + 2), nullptr, GL_STATIC_DRAW);
     
     // Upload data
     uint32_t offset = 0;
     meshMaps.clear();
     for (Mesh & mesh : meshDatas) {
-        geometry.setSubData(offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getPositions());
-        geometry.setSubData(count * 4 * 3 + offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getNormals());
-        geometry.setSubData(offset * 4 * 2 + count * 4 * (3 + 3), mesh.getCount() * 4 * 2, mesh.getCoordinates());
+        geometry_buffer.setSubData(offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getPositions());
+        geometry_buffer.setSubData(count * 4 * 3 + offset * 4 * 3, mesh.getCount() * 4 * 3, mesh.getNormals());
+        geometry_buffer.setSubData(offset * 4 * 2 + count * 4 * (3 + 3), mesh.getCount() * 4 * 2, mesh.getCoordinates());
         meshMaps.push_back({offset, mesh.getCount()});
         offset += mesh.getCount();
     }
@@ -123,7 +123,7 @@ void Renderer::pack() {
     array.addAttribute(0, 3, GL_FLOAT, 0, 0);
     array.addAttribute(1, 3, GL_FLOAT, 0, count * 4 * 3);
     array.addAttribute(2, 2, GL_FLOAT, 0, count * 4 * (3 + 3));
-    permodel.bind(GL_ARRAY_BUFFER);
+    permodel_buffer.bind(GL_ARRAY_BUFFER);
     array.addAttributeMat4(3, 80, 0, true);
     array.addAttribute(7, 4, GL_FLOAT, 80, 64, true);
     
@@ -137,6 +137,11 @@ void Renderer::pack() {
     textures->setAnisotropy(true);
 }
 
+void Renderer::clear() {
+    lights.clear();
+    models.clear();
+}
+
 void Renderer::addLight(Light const * light) {
     lights.push_back(light);
 }
@@ -145,37 +150,23 @@ void Renderer::addModel(Model const * model) {
     models.push_back(model);
 }
 
-void Renderer::clear() {
-    lights.clear();
-    models.clear();
-}
-
-void Renderer::render(Camera const * camera) {
-    // TODO transform upload and command generation could be done in another method, to avoid useless computation in stereoscopy
-    // TODO also, once commands are built, can be asynchronously executed (i.e. could compute gameplay part while rendering)
+void Renderer::prepare() {
     
-    // Upload new per-model data
-    struct PerModel {
-        glm::mat4 transform;
-        glm::vec4 extra;
-    };
-    std::vector<PerModel> models_data(models.size());
+    // Cache per model parameters
+    permodel_data.resize(models.size());
     for (size_t i = 0; i < models.size(); ++i) {
-        models_data[i].transform = models[i]->getTransform();
-        models_data[i].extra.x = models[i]->color;
+        permodel_data[i].transform = models[i]->getTransform();
+        permodel_data[i].extra.x = models[i]->color;
     }
-    permodel.bind(GL_ARRAY_BUFFER);
-    permodel.setData(models.size() * sizeof(PerModel), models_data.data(), GL_STREAM_DRAW);
     
-    // Prepare indirect commands
+    // Upload to GPU
+    // TODO use asynchronous streaming to avoid wait
+    permodel_buffer.bind(GL_ARRAY_BUFFER);
+    permodel_buffer.setData(models.size() * sizeof(PerModel), permodel_data.data(), GL_STREAM_DRAW);
+    
+    // Generate draw commands
     // TODO group models that have the same mesh?
-    struct Command {
-        GLuint count;
-        GLuint instanceCount;
-        GLuint first;
-        GLuint baseInstance;
-    };
-    std::vector<Command> commands(models.size());
+    commands.resize(models.size());
     for (size_t i = 0; i < models.size(); ++i) {
         glm::ivec2 m = meshMaps[models[i]->mesh];
         commands[i].first = m.x;
@@ -183,6 +174,9 @@ void Renderer::render(Camera const * camera) {
         commands[i].instanceCount = 1;
         commands[i].baseInstance = i;
     }
+}
+
+void Renderer::render(Camera const * camera) {
     
     // Use the same vertex array and texture array for everything
     array.bind();
@@ -293,42 +287,39 @@ void Renderer::render(Camera const * camera) {
     glDisable(GL_STENCIL_TEST);
     glDepthMask(GL_TRUE);
     
-    if (window->getKeyboard()->getButton(GLFW_KEY_A)) {
+    /*
+    // Combine result on screen
+    // TODO bloom, hdr, tone mapping, gamma correction
+    processing_framebuffer[0].bind();
+    finalize_shader.use();
+    finalize_shader.setUniform("texture_color", 0);
+    finalize_shader.setUniform("texture_position", 1);
+    finalize_shader.setUniform("texture_normal", 2);
+    finalize_shader.setUniform("texture_light", 3);
+    glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
 
-        // Combine result on screen
-        // TODO bloom, hdr, tone mapping, gamma correction
-        processing_framebuffer[0].bind();
-        finalize_shader.use();
-        finalize_shader.setUniform("texture_color", 0);
-        finalize_shader.setUniform("texture_position", 1);
-        finalize_shader.setUniform("texture_normal", 2);
-        finalize_shader.setUniform("texture_light", 3);
-        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
-
-        // Apply FXAA
-        if (camera->getFramebuffer())
-            camera->getFramebuffer()->bind();
-        else
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        processing_color[0].bind(0);
-        antialiasing_shader.use();
-        antialiasing_shader.setUniform("texture", 0);
-        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
-        
-    } else {
-        
-        // Combine result on screen
-        // TODO bloom, hdr, tone mapping, gamma correction
-        if (camera->getFramebuffer())
-            camera->getFramebuffer()->bind();
-        else
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        finalize_shader.use();
-        finalize_shader.setUniform("texture_color", 0);
-        finalize_shader.setUniform("texture_position", 1);
-        finalize_shader.setUniform("texture_normal", 2);
-        finalize_shader.setUniform("texture_light", 3);
-        glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
-    }
+    // Apply FXAA
+    if (camera->getFramebuffer())
+        camera->getFramebuffer()->bind();
+    else
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    processing_color[0].bind(0);
+    antialiasing_shader.use();
+    antialiasing_shader.setUniform("texture", 0);
+    glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
+    */
+    
+    // Combine result on screen
+    // TODO bloom, hdr, tone mapping, gamma correction
+    if (camera->getFramebuffer())
+        camera->getFramebuffer()->bind();
+    else
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    finalize_shader.use();
+    finalize_shader.setUniform("texture_color", 0);
+    finalize_shader.setUniform("texture_position", 1);
+    finalize_shader.setUniform("texture_normal", 2);
+    finalize_shader.setUniform("texture_light", 3);
+    glDrawArrays(GL_TRIANGLES, meshMaps[0].x, meshMaps[0].y);
     
 }
