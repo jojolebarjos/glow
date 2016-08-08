@@ -16,7 +16,7 @@ bool Smoke::initialize() {
     pass3.addSourceFile(GL_FRAGMENT_SHADER, "Smoke3.fs");
     render.addSourceFile(GL_VERTEX_SHADER, "Smoke.vs");
     render.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
-    render_3d.addSourceFile(GL_VERTEX_SHADER, "Render.vs");
+    render_3d.addSourceFile(GL_VERTEX_SHADER, "SmokeP.vs");
     render_3d.addSourceFile(GL_FRAGMENT_SHADER, "Smoke4.fs");
     if (!pass1.link() || !pass2.link() || !pass3.link() || !render.link() || !render_3d.link()) {
         std::cout << "Failed to compile shaders" << std::endl;

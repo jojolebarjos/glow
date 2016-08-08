@@ -57,6 +57,7 @@
       <itemPath>Smoke2.fs</itemPath>
       <itemPath>Smoke3.fs</itemPath>
       <itemPath>Smoke4.fs</itemPath>
+      <itemPath>SmokeP.vs</itemPath>
       <itemPath>Square.obj</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -275,6 +276,8 @@
       </item>
       <item path="Smoke4.fs" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="SmokeP.vs" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="Sound.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="Sound.hpp" ex="false" tool="3" flavor2="0">
@@ -476,6 +479,8 @@
       <item path="Smoke3.fs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Smoke4.fs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SmokeP.vs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="Sound.cpp" ex="false" tool="1" flavor2="0">
       </item>
