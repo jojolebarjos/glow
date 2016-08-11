@@ -56,6 +56,20 @@ public:
     //     * Reverberation parameters adjustment: 15Hz
     //
     
+    //
+    // http://kcat.strangesoft.net/openal-extensions/SOFT_HRTF.txt
+    // https://github.com/kcat/openal-soft/blob/master/examples/alhrtf.c
+    // http://www.bitoutsidethebox.com/shabda/hrtf-info/
+    //
+    
+    enum struct ReverbPreset {
+        NONE,
+        // Based on AL/efx-presets.h
+        GENERIC,
+        CHAPEL,
+        DUSTYROOM
+    };
+    
     Listener();
     ~Listener();
     
@@ -80,6 +94,9 @@ public:
     // - group can have parent group
     // - releasing a group release everything
     
+    // TODO improve effects quality and control
+    void setReverb(ReverbPreset preset);
+    
 private:
 
 #ifndef GLOW_NO_OPENAL
@@ -87,12 +104,17 @@ private:
     ALCdevice * device;
     ALCcontext * context;
     bool efx;
+    bool hrtf;
     
     struct Binding {
         ALuint handle;
         Source * source;
     };
     std::vector<Binding *> bindings;
+    
+    ReverbPreset reverb_preset;
+    ALuint reverb_effect;
+    ALuint reverb_slot;
     
 #endif
 

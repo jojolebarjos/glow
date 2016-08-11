@@ -17,7 +17,10 @@
 #ifndef GLOW_NO_OPENAL
 #include <AL/al.h>
 #include <AL/alc.h>
+#define AL_ALEXT_PROTOTYPES
+#include <AL/alext.h>
 #include <AL/efx.h>
+#include <AL/efx-presets.h>
 #endif
 
 #ifndef GLOW_NO_OPENVR

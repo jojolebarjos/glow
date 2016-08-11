@@ -5,7 +5,7 @@
 
 Listener::Listener()
 #ifndef GLOW_NO_OPENAL
-: device(nullptr), context(nullptr), efx(false)
+: device(nullptr), context(nullptr), efx(false), hrtf(false)
 #endif
 {}
 
@@ -24,6 +24,10 @@ Listener::~Listener() {
                 delete sound;
             for (Source * source : sources)
                 delete source;
+            if (efx) {
+                alDeleteAuxiliaryEffectSlots(1, &reverb_slot);
+                alDeleteEffects(1, &reverb_effect);
+            }
             
             // Delete context
             alcMakeContextCurrent(nullptr);
@@ -60,11 +64,39 @@ bool Listener::initialize() {
     } else
         std::cout << "OpenAL EFX: <none>" << std::endl;
     
+    // Check HRTF
+    hrtf = alcIsExtensionPresent(device, "ALC_SOFT_HRTF");
+    if (hrtf) {
+        ALCint hrtf_count;
+        alcGetIntegerv(device, ALC_NUM_HRTF_SPECIFIERS_SOFT, 1, &hrtf_count);
+        std::cout << "OpenAL Soft HRTF:";
+        for (int i = 0; i < hrtf_count; ++i) {
+            const ALCchar * hrtf_name = alcGetStringiSOFT(device, ALC_HRTF_SPECIFIER_SOFT, i);
+            std::cout << ' ' << hrtf_name;
+        }
+        std::cout << std::endl;
+        // TODO select an HRTF
+    } else
+        std::cout << "OpenAL Soft HRTF: <none>" << std::endl;
+    
     // Create context
-    ALint attribs[4] = {0}; 
+    ALint attribs[6] = {0};
+    int attribs_offset = 0;
     if (efx) {
-        attribs[0] = ALC_MAX_AUXILIARY_SENDS;
-        attribs[1] = 4;
+        attribs[attribs_offset++] = ALC_MAX_AUXILIARY_SENDS;
+        attribs[attribs_offset++] = 4;
+    }
+    if (hrtf) {
+        attribs[attribs_offset++] = ALC_HRTF_SOFT;
+        attribs[attribs_offset++] = ALC_TRUE;
+        // TODO select desired HRTF (ALC_HRTF_ID_SOFT)
+        alcResetDeviceSOFT(device, attribs);
+        ALCint hrtf_state;
+        alcGetIntegerv(device, ALC_HRTF_SOFT, 1, &hrtf_state);
+        if (hrtf_state) {
+            std::cout << "OpenAL Soft HRTF: " << alcGetString(device, ALC_HRTF_SPECIFIER_SOFT) << std::endl;
+        } else
+            std::cout << "OpenAL Soft HRTF: failed to enable" << std::endl;
     }
     context = alcCreateContext(device, attribs);
     if (!context || !alcMakeContextCurrent(context)) {
@@ -90,6 +122,32 @@ bool Listener::initialize() {
         assert(handle);
         bindings.push_back(new Binding({handle, nullptr}));
     }
+    
+    // Prepare reverb effect
+    if (efx) {
+        
+        // Create slot
+        alGenAuxiliaryEffectSlots(1, &reverb_slot);
+        assert(reverb_slot);
+        alAuxiliaryEffectSloti(reverb_slot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+        reverb_preset = ReverbPreset::NONE;
+        
+        // Create effect
+        alGenEffects(1, &reverb_effect);
+        assert(reverb_effect);
+        alEffecti(reverb_effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+        if (alGetError() != AL_NO_ERROR)
+            std::cout << "EAX REVERB NOT SUPPORTED" << std::endl;
+        else
+            std::cout << "reverb none" << std::endl;
+        
+        // Connect all sources to effect slot
+        for (uint32_t i = 0; i < 1; ++i)
+            alSource3i(bindings[i]->handle, AL_AUXILIARY_SEND_FILTER, reverb_slot, 0, AL_FILTER_NULL);
+    }
+    
+    assert(alGetError() == AL_NO_ERROR);
+    
     return true;
     
 #else
@@ -173,4 +231,60 @@ Source * Listener::addSource(Sound * sound) {
     }
 #endif
     return nullptr;
+}
+
+void Listener::setReverb(ReverbPreset preset) {
+#ifndef GLOW_NO_OPENAL
+    if (efx && preset != reverb_preset) {
+        reverb_preset = preset;
+        
+        // Disable reverb if requested
+        if (preset == ReverbPreset::NONE) {
+            alAuxiliaryEffectSloti(reverb_slot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+            std::cout << "reverb none" << std::endl;
+        }
+        
+        // Select preset and upload parameters
+        else {
+            EFXEAXREVERBPROPERTIES properties;
+            switch (preset) {
+                case ReverbPreset::CHAPEL:
+                    properties = EFX_REVERB_PRESET_CHAPEL;
+                    std::cout << "reverb chapel" << std::endl;
+                    break;
+                case ReverbPreset::DUSTYROOM:
+                    properties = EFX_REVERB_PRESET_DUSTYROOM;
+                    std::cout << "reverb dusty room" << std::endl;
+                    break;
+                default:
+                    properties = EFX_REVERB_PRESET_GENERIC;
+                    std::cout << "reverb generic" << std::endl;
+            }
+            alEffectf(reverb_effect, AL_EAXREVERB_DENSITY, properties.flDensity);
+            alEffectf(reverb_effect, AL_EAXREVERB_DIFFUSION, properties.flDiffusion);
+            alEffectf(reverb_effect, AL_EAXREVERB_GAIN, properties.flGain);
+            alEffectf(reverb_effect, AL_EAXREVERB_GAINHF, properties.flGainHF);
+            alEffectf(reverb_effect, AL_EAXREVERB_GAINLF, properties.flGainLF);
+            alEffectf(reverb_effect, AL_EAXREVERB_DECAY_TIME, properties.flDecayTime);
+            alEffectf(reverb_effect, AL_EAXREVERB_DECAY_HFRATIO, properties.flDecayHFRatio);
+            alEffectf(reverb_effect, AL_EAXREVERB_DECAY_LFRATIO, properties.flDecayLFRatio);
+            alEffectf(reverb_effect, AL_EAXREVERB_REFLECTIONS_GAIN, properties.flReflectionsGain);
+            alEffectf(reverb_effect, AL_EAXREVERB_REFLECTIONS_DELAY, properties.flReflectionsDelay);
+            alEffectfv(reverb_effect, AL_EAXREVERB_REFLECTIONS_PAN, properties.flReflectionsPan);
+            alEffectf(reverb_effect, AL_EAXREVERB_LATE_REVERB_GAIN, properties.flLateReverbGain);
+            alEffectf(reverb_effect, AL_EAXREVERB_LATE_REVERB_DELAY, properties.flLateReverbDelay);
+            alEffectfv(reverb_effect, AL_EAXREVERB_LATE_REVERB_PAN, properties.flLateReverbPan);
+            alEffectf(reverb_effect, AL_EAXREVERB_ECHO_TIME, properties.flEchoTime);
+            alEffectf(reverb_effect, AL_EAXREVERB_ECHO_DEPTH, properties.flEchoDepth);
+            alEffectf(reverb_effect, AL_EAXREVERB_MODULATION_TIME, properties.flModulationTime);
+            alEffectf(reverb_effect, AL_EAXREVERB_MODULATION_DEPTH, properties.flModulationDepth);
+            alEffectf(reverb_effect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, properties.flAirAbsorptionGainHF);
+            alEffectf(reverb_effect, AL_EAXREVERB_HFREFERENCE, properties.flHFReference);
+            alEffectf(reverb_effect, AL_EAXREVERB_LFREFERENCE, properties.flLFReference);
+            alEffectf(reverb_effect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, properties.flRoomRolloffFactor);
+            alEffecti(reverb_effect, AL_EAXREVERB_DECAY_HFLIMIT, properties.iDecayHFLimit);
+            alAuxiliaryEffectSloti(reverb_slot, AL_EFFECTSLOT_EFFECT, reverb_effect);
+        }
+    }
+#endif    
 }
