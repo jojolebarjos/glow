@@ -44,10 +44,17 @@ bool Scene::initialize() {
     source = nullptr;
     if (listener.initialize()) {
         Sampler sampler;
-        sampler.load("Test.wav", Sampler::LEFT);
+        sampler.load("Gun.Shot.wav", Sampler::LEFT);
         sound = listener.addSoundBuffer(sampler);
         source = listener.addSource(sound);
         source->setParent(window->getController(0));
+        
+        Sampler s;
+        s.load("Music.ogg", Sampler::LEFT);
+        Source * src = listener.addSource(listener.addSoundStream(s));
+        src->setParent(window->getController(0));
+        src->setLooping(true);
+        src->play();
     }
     if (window->getHead())
         listener.setParent(window->getHead());
@@ -123,5 +130,8 @@ void Scene::update() {
     }
     
     // Update audio
+    //if (window->getController(0))
+    //    listener.setReverb(!window->getController(0)->getButton(2) ? Listener::ReverbPreset::NONE : Listener::ReverbPreset::CHAPEL);
+    listener.setReverb(!window->getKeyboard()->getButton(GLFW_KEY_ENTER) ? Listener::ReverbPreset::NONE : Listener::ReverbPreset::CHAPEL);
     listener.update();
 }

@@ -8,10 +8,11 @@ bool Sound::isStream() const {
 
 #ifndef GLOW_NO_OPENAL
 
-Sound::Sound(Sampler * sampler, bool stream) {
+Sound::Sound(Sampler const & sampler, bool stream) {
     
     // Make sure the sampler is at beginning
-    sampler->rewind();
+    Sampler * copy = new Sampler(sampler);
+    copy->rewind();
     source = nullptr;
     
     // Streamed sound only load samples when bound to a source
@@ -21,15 +22,16 @@ Sound::Sound(Sampler * sampler, bool stream) {
             assert(cycle[i]);
             available.push_back(cycle[i]);
         }
-        this->sampler = sampler;
+        this->sampler = copy;
         return;
     }
     
     // Buffered sound immediately load one large buffer for the whole sampler
     alGenBuffers(1, &handle);
     assert(handle);
-    this->sampler = sampler;
-    fill(handle, sampler->getSize(), false);
+    this->sampler = copy;
+    fill(handle, copy->getSize(), false);
+    delete copy;
     this->sampler = nullptr;
 }
 

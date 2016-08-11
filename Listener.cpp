@@ -198,10 +198,10 @@ void Listener::update() {
 #endif
 }
 
-Sound * Listener::addSoundBuffer(Sampler & sampler) {
+Sound * Listener::addSoundBuffer(Sampler const & sampler) {
 #ifndef GLOW_NO_OPENAL
     if (device) {
-        Sound * sound = new Sound(&sampler, false);
+        Sound * sound = new Sound(sampler, false);
         sounds.push_front(sound);
         return sound;
     }
@@ -209,7 +209,7 @@ Sound * Listener::addSoundBuffer(Sampler & sampler) {
     return nullptr;
 }
 
-Sound * Listener::addSoundStream(Sampler * sampler) {
+Sound * Listener::addSoundStream(Sampler const & sampler) {
 #ifndef GLOW_NO_OPENAL
     if (device) {
         Sound * sound = new Sound(sampler, true);

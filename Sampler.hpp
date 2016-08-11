@@ -16,10 +16,9 @@ public:
     };
     
     Sampler();
+    Sampler(Sampler const & other);
+    Sampler & operator=(Sampler const & other);
     ~Sampler();
-    
-    Sampler(Sampler const &) = delete;
-    Sampler & operator=(Sampler const &) = delete;
     
     bool load(std::string const & path, Conversion conversion = NONE);
     bool loadWav(std::string const & path, Conversion conversion = NONE);
@@ -49,6 +48,7 @@ private:
         virtual ~Reader() {}
         virtual void rewind() = 0;
         virtual uint32_t read(void * buffer, uint32_t samples) = 0;
+        virtual Reader * copy() const = 0;
     };
     Reader * reader;
     

@@ -22,7 +22,7 @@ public:
     
 private:
     
-    Sound(Sampler * sampler, bool stream);
+    Sound(Sampler const & sampler, bool stream);
     ~Sound();
     
     Sampler * sampler;

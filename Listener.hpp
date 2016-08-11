@@ -82,8 +82,8 @@ public:
     // TODO physical properties: doppler alDopplerFactor, alDopplerVelocity, alSpeedOfSound, alDistanceModel
    
     // Note: a stream can only used by one source at a time
-    Sound * addSoundBuffer(Sampler & sampler);
-    Sound * addSoundStream(Sampler * sampler);
+    Sound * addSoundBuffer(Sampler const & sampler);
+    Sound * addSoundStream(Sampler const & sampler);
     
     Source * addSource(Sound * sound);
     // TODO add source priority system to avoid hard limitation and reduce CPU usage?

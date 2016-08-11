@@ -12,6 +12,16 @@
 
 Sampler::Sampler() : reader(nullptr) {}
 
+Sampler::Sampler(Sampler const & other) : reader(other.reader ? other.reader->copy() : nullptr) {}
+
+Sampler & Sampler::operator=(Sampler const & other) {
+    if (&other != this) {
+        delete reader;
+        reader = other.reader->copy();
+    }
+    return *this;
+}
+
 Sampler::~Sampler() {
     delete reader;
 }
@@ -92,10 +102,11 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
     // http://unusedino.de/ec64/technical/formats/wav.html
     
     struct WavReader : Reader {
+        std::string path;
         FILE * file;
         uint32_t start;
         
-        WavReader(std::string const & path) {
+        WavReader(std::string const & path) : path(path) {
             
             // Open file
             file = fopen(path.c_str(), "rb");
@@ -171,6 +182,13 @@ Sampler::Reader * Sampler::createWav(std::string const & path) {
             return samples;
         }
         
+        WavReader * copy() const {
+            WavReader * result = new WavReader(path);
+            fseek(result->file, ftell(file), SEEK_SET);
+            result->offset = offset;
+            return result;
+        }
+        
     };
     WavReader * reader = new WavReader(path);
     if (reader->file)
@@ -186,10 +204,11 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
 
 #ifndef GLOW_NO_OGG_VORBIS
     struct OggReader : Reader {
+        std::string path;
         FILE * file;
         OggVorbis_File vorbis;
         
-        OggReader(std::string const & path) {
+        OggReader(std::string const & path) : path(path) {
             
             // Open file
             file = fopen(path.c_str(), "rb");
@@ -238,6 +257,13 @@ Sampler::Reader * Sampler::createOgg(std::string const & path) {
                     break;
             }
             return (pointer - (char *)buffer) / sample_size;
+        }
+        
+        OggReader * copy() const {
+            OggReader * result = new OggReader(path);
+            ov_pcm_seek(&result->vorbis, ov_pcm_tell((OggVorbis_File*)&vorbis));
+            result->offset = offset;
+            return result;
         }
         
     };
@@ -332,6 +358,12 @@ Sampler::Reader * Sampler::createResampler(Reader * reader, Conversion conversio
                     break;
             }
             return total;
+        }
+        
+        Resampler * copy() const {
+            Resampler * result = new Resampler(*this);
+            result->reader = reader->copy();
+            return result;
         }
         
     };
