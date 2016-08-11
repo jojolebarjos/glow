@@ -18,7 +18,13 @@ public:
     void setLooping(bool looping);
     bool isLooping() const;
     
-    // TODO direction, pitch, attenuation, gain
+    void setGain(float gain);
+    float getGain();
+    
+    void setPitch(float pitch);
+    float getPitch() const;
+    
+    // TODO direction, attenuation
 
     void play();
     void pause();
@@ -47,6 +53,8 @@ private:
 
     Sound * sound;
     bool looping;
+    float gain;
+    float pitch;
     
 };
 

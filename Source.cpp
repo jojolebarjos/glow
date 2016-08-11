@@ -30,6 +30,38 @@ bool Source::isLooping() const {
     return looping;
 }
 
+void Source::setGain(float gain) {
+    if (gain == this->gain)
+        return;
+    this->gain = gain;
+    
+    // If the source is playing, need to notify OpenAL
+#ifndef GLOW_NO_OPENAL
+    if (binding)
+        alSourcef(binding->handle, AL_GAIN, gain);
+#endif
+}
+
+float Source::getGain() {
+    return gain;
+}
+
+void Source::setPitch(float pitch) {
+    if (pitch == this->pitch)
+        return;
+    this->pitch = pitch;
+    
+    // If the source is playing, need to notify OpenAL
+#ifndef GLOW_NO_OPENAL
+    if (binding)
+        alSourcef(binding->handle, AL_PITCH, pitch);
+#endif
+}
+
+float Source::getPitch() const {
+    return pitch;
+}
+
 void Source::play() {
 #ifndef GLOW_NO_OPENAL
     
@@ -65,10 +97,11 @@ void Source::play() {
     alSource3f(binding->handle, AL_POSITION, position.x, position.y, position.z);
     glm::vec3 velocity = getVelocity();
     alSource3f(binding->handle, AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+    alSourcef(binding->handle, AL_GAIN, gain);
+    alSourcef(binding->handle, AL_PITCH, pitch);
     // alSource3f(handle, AL_DIRECTION, direction.x, direction.y, direction.z);
-    // alSourcef(handle, AL_PITCH, 1); in 0.5 .. 2.0
     // TODO attentuation AL_CONE_INNER_ANGLE, AL_CONE_OUTER_ANGLE, AL_REFERENCE_DISTANCE, AL_ROLLOFF_FACTOR, AL_MAX_DISTANCE
-    // TODO gain AL_GAIN, AL_MIN_GAIN, AL_MAX_GAIN, AL_CONE_OUTER_GAIN
+    // TODO gain AL_MIN_GAIN, AL_MAX_GAIN, AL_CONE_OUTER_GAIN
     // TODO AL_SEC_OFFSET, AL_SAMPLE_OFFSET, AL_BYTE_OFFSET
     
     // Start playback
@@ -143,4 +176,4 @@ Source::Source(Listener * listener) : listener(listener), released(false),
 #ifndef GLOW_NO_OPENAL
     binding(nullptr), paused(false),
 #endif
-    looping(false) {}
+    looping(false), gain(1.0f), pitch(1.0f) {}
